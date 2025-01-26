@@ -1,10 +1,11 @@
-"use client"
-import React from "react";
-import { usePathname } from 'next/navigation'
+"use client";
+import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const Sidebar = () => {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const [hoveredTab, setHoveredTab] = useState(null);
 
   const tabs = [
     { label: "Add Student", route: "/add-student" },
@@ -13,7 +14,6 @@ const Sidebar = () => {
     { label: "Delete Student", route: "/delete-student" },
   ];
 
-
   return (
     <div style={styles.sidebar}>
       {tabs.map((tab) => (
@@ -21,12 +21,17 @@ const Sidebar = () => {
           key={tab?.route}
           style={{
             ...styles.tab,
-            backgroundColor: pathname === tab?.route ? "#a9c7ff" : "#fff",
+            backgroundColor:
+              pathname === tab?.route
+                ? "#a9c7ff"
+                : hoveredTab === tab.route
+                ? "#e8f1ff"
+                : "#fff",
           }}
+          onMouseEnter={() => setHoveredTab(tab.route)}
+          onMouseLeave={() => setHoveredTab(null)}
         >
-            <Link href={tab?.route}>
-          {tab.label}
-          </Link>
+          <Link href={tab?.route}>{tab.label}</Link>
         </div>
       ))}
     </div>
@@ -49,6 +54,7 @@ const styles = {
     borderRadius: "4px",
     textAlign: "left",
     fontSize: "16px",
+    transition: "background-color 0.3s ease", // Smooth hover transition
   },
 };
 

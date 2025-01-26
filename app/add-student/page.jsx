@@ -27,14 +27,27 @@ const AddStudent = () => {
     }));
   };
 
+//   const handleImageChange = (e) => {
+//     setFormData((prevData) => ({
+//       ...prevData,
+//       image: URL.createObjectURL(e.target.files[0]),
+//     }));
+//   };
+
   const handleImageChange = (e) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      image: URL.createObjectURL(e.target.files[0]),
-    }));
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result })); // Base64 string
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
     // Show the review form in a SweetAlert2 modal
@@ -74,30 +87,47 @@ const AddStudent = () => {
         // Process data here if needed
         return formData;
       },
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire("Saved!", "Student information has been saved successfully.", "success");
-        console.log("Saved Data:", formData);
+        // Call the save-student API
+        try {
+          const response = await fetch("/api/hello", {
+            method: "POST",
+            body: JSON.stringify(formData),
+          });
 
-        // Reset form after save
-        setFormData({
-          studentName: "",
-          fatherName: "",
-          department: "",
-          dateOfAdmission: "",
-          email: "",
-          phoneNumber: "",
-          address: "",
-          gender: "",
-          dateOfBirth: "",
-          image: "",
-        });
+          if (!response.ok) {
+            throw new Error("Failed to save student data");
+          }
 
-        const fileInput = document.getElementById("image");
-        if (fileInput) fileInput.value = "";
+          const data = await response.json();
+          Swal.fire("Saved!", "Student information has been saved successfully.", "success");
+
+          console.log("API Response:", data);
+
+          setFormData({
+            studentName: "",
+            fatherName: "",
+            department: "",
+            dateOfAdmission: "",
+            email: "",
+            phoneNumber: "",
+            address: "",
+            gender: "",
+            dateOfBirth: "",
+            image: "",
+          });
+
+          const fileInput = document.getElementById("image");
+          if (fileInput) fileInput.value = "";
+        } catch (error) {
+          Swal.fire("Error!", error.message, "error");
+          console.error("Error saving student data:", error);
+        }
       }
     });
   };
+
 
   return (
     <div style={styles.container}>
