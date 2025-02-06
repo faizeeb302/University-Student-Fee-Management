@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -11,7 +11,7 @@ const Login = () => {
     e.preventDefault();
 
     if (username === "admin" && password === "password") {
-      localStorage.setItem("isAdminLoggedIn", "true"); // Example of persisting login state
+      sessionStorage.setItem("isAdminLoggedIn", "true");
       router.push("/add-student"); // Redirect to admin page
     } else {
       alert("Invalid credentials");

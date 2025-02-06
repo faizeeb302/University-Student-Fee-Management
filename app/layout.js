@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation'
 import localFont from "next/font/local";
 import AdminLayout from "../components/adminDashboard/AdminLayout";
+import { useRouter } from "next/navigation";
+import { useEffect } from 'react';
 import "./globals.css";
 
 const geistSans = localFont({
@@ -23,6 +25,14 @@ const geistMono = localFont({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
+  const router = useRouter();
+  useEffect(() => {
+    const isLoggedIn = sessionStorage.getItem("isAdminLoggedIn");
+
+    if (!isLoggedIn && pathname != "/") {
+      router.push("/"); // Redirect to login if not logged in
+    }
+  }, []);
 
   return (
     <html lang="en">

@@ -1,9 +1,12 @@
-// pages/api/save-student.js
 import fs from "fs";
 import path from "path";
 
 export default function handler(req, res) {
   if (req.method === "POST") {
+    const newStudent = req.body;
+
+    console.log("Received student data:", newStudent); // Log the received data
+
     const filePath = path.join(process.cwd(), "data", "students.json");
 
     // Ensure the "data" folder exists
@@ -11,8 +14,6 @@ export default function handler(req, res) {
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
-
-    const newStudent = req.body;
 
     // Check if the file exists
     if (!fs.existsSync(filePath)) {
