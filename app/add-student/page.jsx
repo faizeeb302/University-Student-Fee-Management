@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
+    rollNumber: "",
     firstName: "",
     lastName: "",
     fatherName: "",
@@ -37,7 +38,7 @@ const AddStudent = () => {
     const reader = new FileReader();
 
     reader.onload = () => {
-      setFormData((prev) => ({ ...prev, image: reader.result })); // Base64 string
+      setFormData((prev) => ({ ...prev, image: reader.result }));
     };
 
     if (file) {
@@ -45,10 +46,35 @@ const AddStudent = () => {
     }
   };
 
+  const validateFields = () => {
+    const phoneRegex = /^\d{10,15}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const rollRegex = /^[a-zA-Z0-9]+$/;
+
+    if (!formData.rollNumber || !rollRegex.test(formData.rollNumber)) {
+      Swal.fire("Invalid Roll Number", "Roll number must be alphanumeric.", "warning");
+      return false;
+    }
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire("Invalid Email", "Please enter a valid email address.", "warning");
+      return false;
+    }
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      Swal.fire("Invalid Phone Number", "Phone number should be 10–15 digits.", "warning");
+      return false;
+    }
+    if (!phoneRegex.test(formData.emergencyContact)) {
+      Swal.fire("Invalid Emergency Contact", "Emergency contact should be 10–15 digits.", "warning");
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // Show the review form in a SweetAlert2 modal
+    if (!validateFields()) return;
+
     Swal.fire({
       title: "<h2>Review Student Data</h2>",
       html: `
@@ -56,81 +82,60 @@ const AddStudent = () => {
           <div style="flex: 1; min-width: 300px; text-align: start;">
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Personal Information</h3>
-              <p style="margin-bottom: 10px; margin-top: 10px;"><strong>Full Name:</strong> ${formData.firstName} ${formData.lastName}</p>
-              <p style="margin-bottom: 10px;"><strong>Father's Name:</strong> ${formData.fatherName}</p>
-              <p style="margin-bottom: 10px;"><strong>Gender:</strong> ${formData.gender}</p>
-              <p style="margin-bottom: 10px;"><strong>Date of Birth:</strong> ${formData.dateOfBirth}</p>
+              <p><strong>Roll Number:</strong> ${formData.rollNumber}</p>
+              <p><strong>Full Name:</strong> ${formData.firstName} ${formData.lastName}</p>
+              <p><strong>Father's Name:</strong> ${formData.fatherName}</p>
+              <p><strong>Gender:</strong> ${formData.gender}</p>
+              <p><strong>Date of Birth:</strong> ${formData.dateOfBirth}</p>
             </div>
-  
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">University Information</h3>
-              <p style="margin-bottom: 10px; margin-top: 10px;"><strong>Department:</strong> ${formData.department}</p>
-              <p style="margin-bottom: 10px;"><strong>Date of Admission:</strong> ${formData.dateOfAdmission}</p>
+              <p><strong>Department:</strong> ${formData.department}</p>
+              <p><strong>Date of Admission:</strong> ${formData.dateOfAdmission}</p>
             </div>
-  
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Contact Information</h3>
-              <p style="margin-bottom: 10px; margin-top: 10px;"><strong>Email:</strong> ${formData.email}</p>
-              <p style="margin-bottom: 10px;"><strong>Phone Number:</strong> ${formData.phoneNumber}</p>
-              <p style="margin-bottom: 10px;"><strong>Emergency Contact:</strong> ${formData.emergencyContact}</p>
+              <p><strong>Email:</strong> ${formData.email}</p>
+              <p><strong>Phone Number:</strong> ${formData.phoneNumber}</p>
+              <p><strong>Emergency Contact:</strong> ${formData.emergencyContact}</p>
             </div>
-  
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Address</h3>
-              <p style="margin-bottom: 10px; margin-top: 10px;"> ${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}</p>
+              <p>${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}</p>
             </div>
           </div>
-          ${formData.image
-          ? `<div style="flex-shrink: 0; text-align: center;">
-                  <img src="${formData.image}" alt="Student" style="width: 150px; height: 150px; border-radius: 10px; object-fit: cover; border: 1px solid #ccc;" />
-                </div>`
-          : ""
-        }
+          ${formData.image ? `<div><img src="${formData.image}" style="width:150px;height:150px;border-radius:10px;border:1px solid #ccc;object-fit:cover;" /></div>` : ""}
         </div>
       `,
       showCancelButton: true,
       confirmButtonText: "Confirm",
       cancelButtonText: "Cancel",
-      width: "60%", // Increased modal width
-      padding: "20px", // Added padding for better spacing
-      customClass: {
-        htmlContainer: "swal-student-review",
-      },
-      preConfirm: () => {
-        // Process data here if needed
-        return formData;
-      },
+      width: "60%",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Call the save-student API
         try {
-
           const updatedFormData = {
             ...formData,
-            name: `${formData.firstName} ${formData.lastName}`.trim(), // Combine firstName and lastName
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
           };
-
-          // Remove firstName and lastName if not needed
           delete updatedFormData.firstName;
           delete updatedFormData.lastName;
 
           const response = await fetch("/api/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedFormData), // Convert updated data to a JSON string
+            body: JSON.stringify(updatedFormData),
           });
-
 
           if (!response.ok) {
             throw new Error("Failed to save student data");
           }
 
-          const data = await response.json();
+          await response.json();
           Swal.fire("Saved!", "Student information has been saved successfully.", "success");
 
-          console.log("API Response:", data);
-
           setFormData({
+            rollNumber: "",
             firstName: "",
             lastName: "",
             fatherName: "",
@@ -152,123 +157,111 @@ const AddStudent = () => {
           if (fileInput) fileInput.value = "";
         } catch (error) {
           Swal.fire("Error!", error.message, "error");
-          console.error("Error saving student data:", error);
         }
       }
     });
   };
 
-
   return (
     <div style={styles.container}>
       <h1 style={styles.heading}>Add Student</h1>
       <form onSubmit={handleSave} style={styles.form}>
-        {/* Personal Information */}
+        {/* Personal Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Personal Information</h2>
-          {/* First Name and Last Name in the same row */}
           <div style={styles.row}>
-            {[{ label: "First Name", name: "firstName", type: "text" },
-            { label: "Last Name", name: "lastName", type: "text" }].map((field, index) => (
-              <div key={index} style={styles.inputGroup}>
-                <label htmlFor={field.name} style={styles.label}>
-                  {field.label}
-                </label>
+            {[
+              { label: "Roll Number", name: "rollNumber" },
+              { label: "First Name", name: "firstName" },
+              { label: "Last Name", name: "lastName" },
+            ].map((field, i) => (
+              <div key={i} style={styles.inputGroup}>
+                <label style={styles.label}>{field.label}</label>
                 <input
-                  id={field.name}
+                  type="text"
                   name={field.name}
-                  type={field.type}
                   value={formData[field.name]}
                   onChange={handleChange}
-                  style={styles.input}
                   required
+                  style={styles.input}
                 />
               </div>
             ))}
           </div>
-          {[{ label: "Father's Name", name: "fatherName", type: "text" },
-          { label: "Date of Birth", name: "dateOfBirth", type: "date" }].map((field, index) => (
-            <div key={index} style={styles.inputGroup}>
-              <label htmlFor={field.name} style={styles.label}>
-                {field.label}
-              </label>
+          {[
+            { label: "Father's Name", name: "fatherName" },
+            { label: "Date of Birth", name: "dateOfBirth", type: "date" },
+          ].map((field, i) => (
+            <div key={i} style={styles.inputGroup}>
+              <label style={styles.label}>{field.label}</label>
               <input
-                id={field.name}
+                type={field.type || "text"}
                 name={field.name}
-                type={field.type}
                 value={formData[field.name]}
                 onChange={handleChange}
-                style={styles.input}
                 required
+                style={styles.input}
               />
             </div>
           ))}
-          {/* Gender Field */}
           <div style={styles.inputGroup}>
-            <label htmlFor="gender" style={styles.label}>
-              Gender
-            </label>
+            <label style={styles.label}>Gender</label>
             <select
-              id="gender"
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              style={styles.input}
               required
+              style={styles.input}
             >
               <option value="">Select Gender</option>
-              {genders.map((gender, index) => (
-                <option key={index} value={gender}>
-                  {gender}
-                </option>
+              {genders.map((g, i) => (
+                <option key={i} value={g}>{g}</option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* University Information */}
+        {/* University Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>University Information</h2>
           <div style={styles.row}>
-            {[{ label: "Department", name: "department", type: "text" },
-            { label: "Date of Admission", name: "dateOfAdmission", type: "date" }].map((field, index) => (
-              <div key={index} style={styles.inputGroup}>
-                <label htmlFor={field.name} style={styles.label}>
-                  {field.label}
-                </label>
+            {[
+              { label: "Department", name: "department" },
+              { label: "Date of Admission", name: "dateOfAdmission", type: "date" },
+            ].map((field, i) => (
+              <div key={i} style={styles.inputGroup}>
+                <label style={styles.label}>{field.label}</label>
                 <input
-                  id={field.name}
+                  type={field.type || "text"}
                   name={field.name}
-                  type={field.type}
                   value={formData[field.name]}
                   onChange={handleChange}
-                  style={styles.input}
                   required
+                  style={styles.input}
                 />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Contact Information */}
+        {/* Contact Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Contact Information</h2>
           <div style={styles.row}>
-            {[{ label: "Email", name: "email", type: "email" },
-            { label: "Phone Number", name: "phoneNumber", type: "tel" },
-            { label: "Emergency Contact", name: "emergencyContact", type: "tel" }].map((field, index) => (
-              <div key={index} style={styles.inputGroup}>
-                <label htmlFor={field.name} style={styles.label}>
-                  {field.label}
-                </label>
+            {[
+              { label: "Email", name: "email", type: "email" },
+              { label: "Phone Number", name: "phoneNumber", type: "tel" },
+              { label: "Emergency Contact", name: "emergencyContact", type: "tel" },
+            ].map((field, i) => (
+              <div key={i} style={styles.inputGroup}>
+                <label style={styles.label}>{field.label}</label>
                 <input
-                  id={field.name}
-                  name={field.name}
                   type={field.type}
+                  name={field.name}
                   value={formData[field.name]}
                   onChange={handleChange}
-                  style={styles.input}
                   required
+                  style={styles.input}
                 />
               </div>
             ))}
@@ -279,22 +272,16 @@ const AddStudent = () => {
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Address</h2>
           <div style={styles.row}>
-            {[{ label: "Street", name: "street", type: "text" },
-            { label: "City", name: "city", type: "text" },
-            { label: "State", name: "state", type: "text" },
-            { label: "Country", name: "country", type: "text" }].map((field, index) => (
-              <div key={index} style={styles.inputGroup}>
-                <label htmlFor={field.name} style={styles.label}>
-                  {field.label}
-                </label>
+            {["street", "city", "state", "country"].map((name, i) => (
+              <div key={i} style={styles.inputGroup}>
+                <label style={styles.label}>{name.charAt(0).toUpperCase() + name.slice(1)}</label>
                 <input
-                  id={field.name}
-                  name={field.name}
-                  type={field.type}
-                  value={formData[field.name]}
+                  type="text"
+                  name={name}
+                  value={formData[name]}
                   onChange={handleChange}
-                  style={styles.input}
                   required
+                  style={styles.input}
                 />
               </div>
             ))}
@@ -324,52 +311,66 @@ const AddStudent = () => {
 
 const styles = {
   container: {
-    maxWidth: "900px",
+    maxWidth: "950px",
     margin: "0 auto",
-    padding: "20px",
+    padding: "30px",
+    background: "#f9f9f9",
+    borderRadius: "8px",
+    boxShadow: "0 0 10px rgba(0,0,0,0.1)",
   },
   heading: {
     textAlign: "center",
+    fontSize: "2rem",
+    marginBottom: "20px",
+    color: "#333",
   },
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "25px",
   },
   section: {
     padding: "10px 0",
   },
   sectionHeading: {
-    fontSize: "1.2em",
-    fontWeight: "bold",
+    fontSize: "1.25rem",
+    marginBottom: "15px",
+    color: "#222",
+    borderBottom: "2px solid #ddd",
+    paddingBottom: "5px",
   },
   row: {
     display: "flex",
     gap: "20px",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
   },
   inputGroup: {
     flex: 1,
-    minWidth: "200px",
+    minWidth: "220px",
+    marginBottom: "10px",
   },
   label: {
-    fontSize: "1em",
+    display: "block",
+    marginBottom: "5px",
+    fontWeight: "600",
+    color: "#444",
   },
   input: {
     width: "100%",
-    padding: "8px",
-    borderRadius: "5px",
+    padding: "10px",
+    fontSize: "1rem",
     border: "1px solid #ccc",
-    fontSize: "1em",
+    borderRadius: "5px",
   },
   button: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#28a745",
     color: "#fff",
-    padding: "10px 20px",
-    fontSize: "1em",
+    padding: "12px 24px",
+    fontSize: "1rem",
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
+    alignSelf: "flex-start",
   },
 };
 

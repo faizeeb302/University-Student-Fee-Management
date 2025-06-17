@@ -16,45 +16,65 @@ const Sidebar = () => {
 
   return (
     <div style={styles.sidebar}>
-      {tabs.map((tab) => (
-        <div
-          key={tab?.route}
-          style={{
-            ...styles.tab,
-            backgroundColor:
-              pathname === tab?.route
-                ? "#a9c7ff"
-                : hoveredTab === tab.route
-                ? "#e8f1ff"
-                : "#fff",
-          }}
-          onMouseEnter={() => setHoveredTab(tab.route)}
-          onMouseLeave={() => setHoveredTab(null)}
-        >
-          <Link href={tab?.route}>{tab.label}</Link>
-        </div>
-      ))}
+      <h2 style={styles.title}>Student Panel</h2>
+      {tabs.map((tab) => {
+        const isActive = pathname === tab.route;
+        const isHovered = hoveredTab === tab.route;
+
+        return (
+          <Link key={tab.route} href={tab.route} legacyBehavior>
+            <a
+              style={{
+                ...styles.tab,
+                backgroundColor: isActive
+                  ? "#cfe2ff"
+                  : isHovered
+                  ? "#f0f4ff"
+                  : "#fff",
+                fontWeight: isActive ? "600" : "normal",
+                color: isActive ? "#084298" : "#333",
+              }}
+              onMouseEnter={() => setHoveredTab(tab.route)}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              {tab.label}
+            </a>
+          </Link>
+        );
+      })}
     </div>
   );
 };
 
 const styles = {
   sidebar: {
-    width: "200px",
+    width: "220px",
     height: "100vh",
     backgroundColor: "#f8f9fa",
     borderRight: "1px solid #ddd",
-    padding: "10px",
+    padding: "20px 10px",
     boxSizing: "border-box",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "10px",
+  },
+  title: {
+    fontSize: "18px",
+    fontWeight: "bold",
+    marginBottom: "20px",
+    color: "#333",
+    paddingLeft: "5px",
   },
   tab: {
+    width: "100%",
     padding: "10px 15px",
-    margin: "5px 0",
+    borderRadius: "6px",
+    textDecoration: "none",
+    display: "block",
+    transition: "background-color 0.3s, color 0.3s",
     cursor: "pointer",
-    borderRadius: "4px",
-    textAlign: "left",
     fontSize: "16px",
-    transition: "background-color 0.3s ease", // Smooth hover transition
   },
 };
 
