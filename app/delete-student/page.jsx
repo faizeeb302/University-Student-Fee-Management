@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
+import Spinner from "../../components/Spinner/spinner"; // adjust the path
+
 
 const DeleteStudent = () => {
   const [students, setStudents] = useState([]);
@@ -40,8 +42,8 @@ const DeleteStudent = () => {
   useEffect(() => {
     const filtered = searchTerm.trim()
       ? students.filter((s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        s.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
       : students;
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
@@ -74,9 +76,8 @@ const DeleteStudent = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         style={styles.searchBar}
       />
-
       {loading ? (
-        <p>Loading students...</p>
+        <Spinner />
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (
           <div key={index} style={styles.card}>
@@ -99,7 +100,6 @@ const DeleteStudent = () => {
       ) : (
         <p>No students found.</p>
       )}
-
       <style>
         {`
           .trash-icon:hover {
