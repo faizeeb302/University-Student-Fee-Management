@@ -7,32 +7,43 @@ const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchStudents = async () => {
+      setLoading(true);
       try {
-        const response = await fetch("/api/get-students");
+        const response = await fetch("/api/get-students", {
+          signal: controller.signal,
+        });
         const data = await response.json();
-        console.log("data", data);
         setStudents(data);
-        setFilteredStudents(data); // Initially, show all students
+        setFilteredStudents(data);
       } catch (error) {
-        console.error("Error fetching students:", error);
+        if (error.name !== "AbortError") {
+          console.error("Error fetching students:", error);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStudents();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredStudents(students); // Show all students when search is empty
-    } else {
-      const filtered = students.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredStudents(filtered);
-    }
+    const filtered = searchTerm.trim()
+      ? students.filter((s) =>
+          s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : students;
+    setFilteredStudents(filtered);
   }, [searchTerm, students]);
 
   const showStudentDetails = (student) => {
@@ -50,7 +61,6 @@ const ViewList = () => {
         </div>
       `,
       showCloseButton: true,
-      focusConfirm: false,
       confirmButtonText: "Close",
     });
   };
@@ -66,36 +76,31 @@ const ViewList = () => {
         style={styles.searchBar}
       />
 
-      <div>
-        {filteredStudents.length > 0 ? (
-          filteredStudents.map((student, index) => (
-            <div key={index} style={styles.card}>
-              <img
-                src={student.image || "/default-avatar.png"}
-                alt="Student"
-                style={styles.image}
-              />
-              <div>
-                <p>
-                  <strong>Name:</strong> {student.name}
-                </p>
-                <p>
-                  <strong>Department:</strong> {student.department}
-                </p>
-              </div>
-              <FaEye
-                style={styles.eyeIcon}
-                className="eye-icon"
-                onClick={() => showStudentDetails(student)}
-              />
+      {loading ? (
+        <p>Loading students...</p>
+      ) : filteredStudents.length > 0 ? (
+        filteredStudents.map((student, index) => (
+          <div key={index} style={styles.card}>
+            <img
+              src={student.image || "/default-avatar.png"}
+              alt="Student"
+              style={styles.image}
+            />
+            <div>
+              <p><strong>Name:</strong> {student.name}</p>
+              <p><strong>Department:</strong> {student.department}</p>
             </div>
-          ))
-        ) : (
-          <p>No students found.</p>
-        )}
-      </div>
+            <FaEye
+              style={styles.eyeIcon}
+              className="eye-icon"
+              onClick={() => showStudentDetails(student)}
+            />
+          </div>
+        ))
+      ) : (
+        <p>No students found.</p>
+      )}
 
-      {/* Inline CSS for hover effect */}
       <style>
         {`
           .eye-icon:hover {
@@ -109,7 +114,8 @@ const ViewList = () => {
 
 const styles = {
   searchBar: {
-    width: "20%",
+    width: "100%",
+    maxWidth: "300px",
     padding: "10px",
     marginBottom: "20px",
     border: "1px solid #ddd",
