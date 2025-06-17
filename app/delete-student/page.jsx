@@ -7,31 +7,43 @@ const DeleteStudent = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchStudents = async () => {
+      setLoading(true);
       try {
-        const response = await fetch("/api/get-students");
+        const response = await fetch("/api/get-students", {
+          signal: controller.signal,
+        });
         const data = await response.json();
         setStudents(data);
         setFilteredStudents(data);
       } catch (error) {
-        console.error("Error fetching students:", error);
+        if (error.name !== "AbortError") {
+          console.error("Error fetching students:", error);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStudents();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredStudents(students);
-    } else {
-      const filtered = students.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredStudents(filtered);
-    }
+    const filtered = searchTerm.trim()
+      ? students.filter((s) =>
+          s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : students;
+    setFilteredStudents(filtered);
   }, [searchTerm, students]);
 
   const handleDelete = (studentId) => {
@@ -45,8 +57,8 @@ const DeleteStudent = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedStudents = students.filter((s) => s.id !== studentId);
-        setStudents(updatedStudents);
+        const updated = students.filter((s) => s.id !== studentId);
+        setStudents(updated);
         Swal.fire("Deleted!", "The student has been deleted.", "success");
       }
     });
@@ -54,7 +66,7 @@ const DeleteStudent = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Student List</h1>
+      <h1>Delete Student</h1>
       <input
         type="text"
         placeholder="Search by name..."
@@ -63,34 +75,30 @@ const DeleteStudent = () => {
         style={styles.searchBar}
       />
 
-      <div>
-        {filteredStudents.length > 0 ? (
-          filteredStudents.map((student, index) => (
-            <div key={index} style={styles.card}>
-              <img
-                src={student.image || "/default-avatar.png"}
-                alt="Student"
-                style={styles.image}
-              />
-              <div>
-                <p>
-                  <strong>Name:</strong> {student.name}
-                </p>
-                <p>
-                  <strong>Department:</strong> {student.department}
-                </p>
-              </div>
-              <FaTrash
-                style={styles.trashIcon}
-                className="trash-icon"
-                onClick={() => handleDelete(student.id)}
-              />
+      {loading ? (
+        <p>Loading students...</p>
+      ) : filteredStudents.length > 0 ? (
+        filteredStudents.map((student, index) => (
+          <div key={index} style={styles.card}>
+            <img
+              src={student.image || "/default-avatar.png"}
+              alt="Student"
+              style={styles.image}
+            />
+            <div>
+              <p><strong>Name:</strong> {student.name}</p>
+              <p><strong>Department:</strong> {student.department}</p>
             </div>
-          ))
-        ) : (
-          <p>No students found.</p>
-        )}
-      </div>
+            <FaTrash
+              style={styles.trashIcon}
+              className="trash-icon"
+              onClick={() => handleDelete(student.id)}
+            />
+          </div>
+        ))
+      ) : (
+        <p>No students found.</p>
+      )}
 
       <style>
         {`
@@ -105,7 +113,8 @@ const DeleteStudent = () => {
 
 const styles = {
   searchBar: {
-    width: "20%",
+    width: "100%",
+    maxWidth: "300px",
     padding: "10px",
     marginBottom: "20px",
     border: "1px solid #ddd",
