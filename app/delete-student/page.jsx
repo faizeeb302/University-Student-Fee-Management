@@ -12,14 +12,16 @@ const DeleteStudent = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
+    // Added AbortController to cancel API requests on fast route changes.
+    // const controller = new AbortController();
 
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/get-students", {
-          signal: controller.signal,
-        });
+        //   const response = await fetch("/api/get-students", {
+        //   signal: controller.signal,
+        // });
+        const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
         setFilteredStudents(data);
@@ -34,9 +36,9 @@ const DeleteStudent = () => {
 
     fetchStudents();
 
-    return () => {
-      controller.abort();
-    };
+    // return () => {
+    //   controller.abort();
+    // };
   }, []);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ const DeleteStudent = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         style={styles.searchBar}
       />
-      {loading ? (
+      {loading  ? (
         <Spinner />
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { FaEye } from "react-icons/fa";
 import Swal from "sweetalert2";
+import Spinner from "../../components/Spinner/spinner";
 
 const ViewList = () => {
   const [students, setStudents] = useState([]);
@@ -10,14 +11,12 @@ const ViewList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
+    // const controller = new AbortController();
 
     const fetchStudents = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/get-students", {
-          signal: controller.signal,
-        });
+       const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
         setFilteredStudents(data);
@@ -32,16 +31,13 @@ const ViewList = () => {
 
     fetchStudents();
 
-    return () => {
-      controller.abort();
-    };
   }, []);
 
   useEffect(() => {
     const filtered = searchTerm.trim()
       ? students.filter((s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        s.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
       : students;
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
@@ -77,7 +73,7 @@ const ViewList = () => {
       />
 
       {loading ? (
-        <p>Loading students...</p>
+        <Spinner />
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (
           <div key={index} style={styles.card}>
