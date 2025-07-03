@@ -4,7 +4,7 @@ import { FaEye } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Spinner from "../../components/Spinner/spinner";
 
-const AddSuspension = () => {
+const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
@@ -41,8 +41,59 @@ const AddSuspension = () => {
   const toggleSuspension = (index) => {
     setSuspensionStates((prev) => ({
       ...prev,
-      [index]: !prev[index],
+      [index]: {
+        show: !prev[index]?.show,
+        from: "",
+        to: "",
+      },
     }));
+  };
+
+  const handleSuspensionChange = (index, field, value) => {
+    setSuspensionStates((prev) => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        [field]: value,
+      },
+    }));
+  };
+
+  const confirmSuspension = (student, index) => {
+    const { from, to } = suspensionStates[index] || {};
+
+    if (!from || !to) {
+      Swal.fire("Missing Dates", "Please select both dates.", "warning");
+      return;
+    }
+
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (fromDate > toDate) {
+      Swal.fire("Invalid Range", "`From` date must be before `To` date.", "error");
+      return;
+    }
+
+    Swal.fire({
+      title: "Confirm Suspension",
+      html: `
+        Are you sure you want to suspend <strong>${student.name}</strong> from <strong>${from}</strong> to <strong>${to}</strong>?
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Suspend",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // You can post to an API here
+        Swal.fire("Suspended!", `${student.name} has been suspended.`, "success");
+        // Optionally reset suspension form
+        setSuspensionStates((prev) => ({
+          ...prev,
+          [index]: { show: false, from: "", to: "" },
+        }));
+      }
+    });
   };
 
   const showStudentDetails = (student) => {
@@ -78,44 +129,68 @@ const AddSuspension = () => {
       {loading ? (
         <Spinner />
       ) : filteredStudents.length > 0 ? (
-        filteredStudents.map((student, index) => (
-          <div key={index} style={styles.card}>
-            <div style={styles.imageContainer}>
-              <img
-                src={student.image || "/default-avatar.png"}
-                alt="Student"
-                style={styles.image}
+        filteredStudents.map((student, index) => {
+          const suspension = suspensionStates[index] || {};
+          return (
+            <div key={index} style={styles.card}>
+              <div style={styles.imageContainer}>
+                <img
+                  src={student.image || "/default-avatar.png"}
+                  alt="Student"
+                  style={styles.image}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p><strong>Name:</strong> {student.name}</p>
+                <p><strong>Department:</strong> {student.department}</p>
+                <button
+                  onClick={() => toggleSuspension(index)}
+                  style={styles.suspendButton}
+                >
+                  {suspension.show ? "Hide Suspension" : "Suspend"}
+                </button>
+
+                {suspension.show && (
+                  <div style={styles.suspensionForm}>
+                    <label>
+                      Suspension From:
+                      <input
+                        type="date"
+                        value={suspension.from}
+                        onChange={(e) =>
+                          handleSuspensionChange(index, "from", e.target.value)
+                        }
+                        style={styles.dateInput}
+                      />
+                    </label>
+                    <label>
+                      Suspension To:
+                      <input
+                        type="date"
+                        value={suspension.to}
+                        onChange={(e) =>
+                          handleSuspensionChange(index, "to", e.target.value)
+                        }
+                        style={styles.dateInput}
+                      />
+                    </label>
+                    <button
+                      onClick={() => confirmSuspension(student, index)}
+                      style={styles.confirmButton}
+                    >
+                      Confirm Suspension
+                    </button>
+                  </div>
+                )}
+              </div>
+              <FaEye
+                style={styles.eyeIcon}
+                className="eye-icon"
+                onClick={() => showStudentDetails(student)}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <p><strong>Name:</strong> {student.name}</p>
-              <p><strong>Department:</strong> {student.department}</p>
-              <button
-                onClick={() => toggleSuspension(index)}
-                style={styles.suspendButton}
-              >
-                {suspensionStates[index] ? "Hide Suspension" : "Suspend"}
-              </button>
-              {suspensionStates[index] && (
-                <div style={styles.suspensionForm}>
-                  <label>
-                    Suspension From:
-                    <input type="date" style={styles.dateInput} />
-                  </label>
-                  <label>
-                    Suspension To:
-                    <input type="date" style={styles.dateInput} />
-                  </label>
-                </div>
-              )}
-            </div>
-            <FaEye
-              style={styles.eyeIcon}
-              className="eye-icon"
-              onClick={() => showStudentDetails(student)}
-            />
-          </div>
-        ))
+          );
+        })
       ) : (
         <p>No students found.</p>
       )}
@@ -178,8 +253,8 @@ const styles = {
   suspensionForm: {
     marginTop: "10px",
     display: "flex",
-    gap: "10px",
-    flexWrap: "wrap",
+    flexDirection: "column",
+    gap: "8px",
   },
   dateInput: {
     marginLeft: "5px",
@@ -187,6 +262,15 @@ const styles = {
     borderRadius: "4px",
     border: "1px solid #ccc",
   },
+  confirmButton: {
+    marginTop: "10px",
+    padding: "8px 12px",
+    backgroundColor: "#4caf50",
+    border: "none",
+    borderRadius: "4px",
+    color: "#fff",
+    cursor: "pointer",
+  },
 };
 
-export default AddSuspension;
+export default ViewList;
