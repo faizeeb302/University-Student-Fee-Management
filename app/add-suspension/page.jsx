@@ -85,13 +85,27 @@ const ViewList = () => {
       confirmButtonText: "Yes, Suspend",
     }).then((result) => {
       if (result.isConfirmed) {
-        // You can post to an API here
+        // TODO: Update backend or state with suspension
         Swal.fire("Suspended!", `${student.name} has been suspended.`, "success");
-        // Optionally reset suspension form
         setSuspensionStates((prev) => ({
           ...prev,
           [index]: { show: false, from: "", to: "" },
         }));
+      }
+    });
+  };
+
+  const removeSuspension = (student) => {
+    Swal.fire({
+      title: "Remove Suspension",
+      text: `Are you sure you want to remove suspension for ${student.name}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Remove",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // TODO: Call API or update state to remove suspension
+        Swal.fire("Removed!", `${student.name}'s suspension has been removed.`, "success");
       }
     });
   };
@@ -143,17 +157,29 @@ const ViewList = () => {
               <div style={{ flex: 1 }}>
                 <p><strong>Name:</strong> {student.name}</p>
                 <p><strong>Department:</strong> {student.department}</p>
-                <button
-                  onClick={() => toggleSuspension(index)}
-                  style={styles.suspendButton}
-                >
-                  {suspension.show ? "Hide Suspension" : "Suspend"}
-                </button>
+
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
+                  <button
+                    onClick={() => toggleSuspension(index)}
+                    style={styles.suspendButton}
+                  >
+                    {suspension.show ? "Hide Suspension" : "Suspend"}
+                  </button>
+
+                  {student.isSuspended && (
+                    <button
+                      onClick={() => removeSuspension(student)}
+                      style={styles.removeButton}
+                    >
+                      Remove Suspension
+                    </button>
+                  )}
+                </div>
 
                 {suspension.show && (
                   <div style={styles.suspensionForm}>
                     <label>
-                      Suspension From:
+                      From:
                       <input
                         type="date"
                         value={suspension.from}
@@ -164,7 +190,7 @@ const ViewList = () => {
                       />
                     </label>
                     <label>
-                      Suspension To:
+                      To:
                       <input
                         type="date"
                         value={suspension.to}
@@ -178,7 +204,7 @@ const ViewList = () => {
                       onClick={() => confirmSuspension(student, index)}
                       style={styles.confirmButton}
                     >
-                      Confirm Suspension
+                      Confirm
                     </button>
                   </div>
                 )}
@@ -242,9 +268,16 @@ const styles = {
     transition: "color 0.3s ease",
   },
   suspendButton: {
-    marginTop: "10px",
-    padding: "8px 12px",
+    padding: "6px 12px",
     backgroundColor: "#ff9800",
+    border: "none",
+    borderRadius: "4px",
+    color: "#fff",
+    cursor: "pointer",
+  },
+  removeButton: {
+    padding: "6px 12px",
+    backgroundColor: "#d32f2f",
     border: "none",
     borderRadius: "4px",
     color: "#fff",
@@ -253,22 +286,22 @@ const styles = {
   suspensionForm: {
     marginTop: "10px",
     display: "flex",
-    flexDirection: "column",
-    gap: "8px",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: "10px",
   },
   dateInput: {
-    marginLeft: "5px",
     padding: "5px",
+    marginLeft: "5px",
     borderRadius: "4px",
     border: "1px solid #ccc",
   },
   confirmButton: {
-    marginTop: "10px",
-    padding: "8px 12px",
     backgroundColor: "#4caf50",
-    border: "none",
-    borderRadius: "4px",
     color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    border: "none",
     cursor: "pointer",
   },
 };

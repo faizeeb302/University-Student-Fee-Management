@@ -11,33 +11,28 @@ const ViewList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // const controller = new AbortController();
-
     const fetchStudents = async () => {
       setLoading(true);
       try {
-       const response = await fetch("/api/get-students");
+        const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
         setFilteredStudents(data);
       } catch (error) {
-        if (error.name !== "AbortError") {
-          console.error("Error fetching students:", error);
-        }
+        console.error("Error fetching students:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudents();
-
   }, []);
 
   useEffect(() => {
     const filtered = searchTerm.trim()
       ? students.filter((s) =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+          s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       : students;
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
@@ -54,6 +49,7 @@ const ViewList = () => {
           <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
           <p><strong>Gender:</strong> ${student.gender}</p>
           <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
+          <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
         </div>
       `,
       showCloseButton: true,
@@ -82,9 +78,20 @@ const ViewList = () => {
               alt="Student"
               style={styles.image}
             />
-            <div>
+            <div style={{ flex: 1 }}>
               <p><strong>Name:</strong> {student.name}</p>
               <p><strong>Department:</strong> {student.department}</p>
+              <p>
+                <strong>Suspended:</strong>{" "}
+                <span
+                  style={{
+                    color: student.isSuspended ? "red" : "green",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {student.isSuspended ? "Yes" : "No"}
+                </span>
+              </p>
             </div>
             <FaEye
               style={styles.eyeIcon}
@@ -130,6 +137,7 @@ const styles = {
     width: "100px",
     height: "100px",
     marginRight: "20px",
+    borderRadius: "8px",
   },
   eyeIcon: {
     cursor: "pointer",
