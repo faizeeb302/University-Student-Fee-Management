@@ -13,6 +13,7 @@ const Sidebar = () => {
     { label: "Update Student", route: "/update-student" },
     { label: "Delete Student", route: "/delete-student" },
     { label: "Suspend Student", route: "/add-suspension" },
+    { label: "Fee Submission", route: "/fee-submission" },
   ];
 
   return (
