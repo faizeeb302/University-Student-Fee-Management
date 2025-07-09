@@ -11,55 +11,53 @@ const ViewList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // const controller = new AbortController();
-
     const fetchStudents = async () => {
       setLoading(true);
       try {
-       const response = await fetch("/api/get-students");
+        const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
         setFilteredStudents(data);
       } catch (error) {
-        if (error.name !== "AbortError") {
-          console.error("Error fetching students:", error);
-        }
+        console.error("Error fetching students:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudents();
-
   }, []);
 
   useEffect(() => {
     const filtered = searchTerm.trim()
       ? students.filter((s) =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+          s.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       : students;
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
 
-  const showStudentDetails = (student) => {
-    Swal.fire({
-      title: `<strong>Student Details</strong>`,
-      html: `
-        <div style="text-align: left;">
-          <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>Father's Name:</strong> ${student.fatherName}</p>
-          <p><strong>Department:</strong> ${student.department}</p>
-          <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
-          <p><strong>Gender:</strong> ${student.gender}</p>
-          <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
-        </div>
-      `,
-      showCloseButton: true,
-      confirmButtonText: "Close",
-    });
-  };
+ const showStudentDetails = (student) => {
+  Swal.fire({
+    title: `<strong>Student Details</strong>`,
+    html: `
+      <div style="text-align: left;">
+        <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+        <p><strong>Name:</strong> ${student.name}</p>
+        <p><strong>Father's Name:</strong> ${student.fatherName}</p>
+        <p><strong>Department:</strong> ${student.department}</p>
+        <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
+        <p><strong>Gender:</strong> ${student.gender}</p>
+        <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
+        <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
+        <p><strong>Remaining Fee:</strong> Rs. ${student.remainingFee != null ? student.remainingFee : "0"}</p>
+      </div>
+    `,
+    showCloseButton: true,
+    confirmButtonText: "Close",
+  });
+};
+
 
   return (
     <div style={{ padding: "20px" }}>
@@ -77,20 +75,45 @@ const ViewList = () => {
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (
           <div key={index} style={styles.card}>
-            <img
-              src={student.image || "/default-avatar.png"}
-              alt="Student"
-              style={styles.image}
-            />
-            <div>
-              <p><strong>Name:</strong> {student.name}</p>
-              <p><strong>Department:</strong> {student.department}</p>
+            {/* Column 1: Image */}
+            <div style={styles.cardColumn}>
+           
+              <img
+                src={student.image || "/default-avatar.png"}
+                alt="Student"
+                style={styles.image}
+              />
             </div>
-            <FaEye
-              style={styles.eyeIcon}
-              className="eye-icon"
-              onClick={() => showStudentDetails(student)}
-            />
+
+            {/* Column 2: Name */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Name</div>
+              <div>{student.name}</div>
+            </div>
+
+            {/* Column 3: Suspended */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Suspended</div>
+              <div style={{ fontWeight: "bold", color: student.isSuspended ? "red" : "green" }}>
+                {student.isSuspended ? "Yes" : "No"}
+              </div>
+            </div>
+
+            {/* Column 4: Remaining Fee */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Remaining Fee</div>
+              <div>Rs. {student.remainingFee != null ? student.remainingFee : "0"}</div>
+            </div>
+
+            {/* Column 5: Actions */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>View</div>
+              <FaEye
+                style={styles.eyeIcon}
+                className="eye-icon"
+                onClick={() => showStudentDetails(student)}
+              />
+            </div>
           </div>
         ))
       ) : (
@@ -121,15 +144,29 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    margin: "10px 0",
-    padding: "10px",
+    flexWrap: "wrap",
+    padding: "15px",
+    marginBottom: "15px",
     border: "1px solid #ddd",
     borderRadius: "8px",
+    gap: "20px",
+  },
+  cardColumn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    minWidth: "100px",
+    textAlign: "center",
+  },
+  columnTitle: {
+    fontWeight: "bold",
+    marginBottom: "5px",
   },
   image: {
-    width: "100px",
-    height: "100px",
-    marginRight: "20px",
+    width: "80px",
+    height: "80px",
+    borderRadius: "8px",
+    objectFit: "cover",
   },
   eyeIcon: {
     cursor: "pointer",
