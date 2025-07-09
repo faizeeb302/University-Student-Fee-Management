@@ -73,31 +73,45 @@ const ViewList = () => {
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (
           <div key={index} style={styles.card}>
-            <img
-              src={student.image || "/default-avatar.png"}
-              alt="Student"
-              style={styles.image}
-            />
-            <div style={{ flex: 1 }}>
-              <p><strong>Name:</strong> {student.name}</p>
-              <p><strong>Department:</strong> {student.department}</p>
-              <p>
-                <strong>Suspended:</strong>{" "}
-                <span
-                  style={{
-                    color: student.isSuspended ? "red" : "green",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {student.isSuspended ? "Yes" : "No"}
-                </span>
-              </p>
+            {/* Column 1: Image */}
+            <div style={styles.cardColumn}>
+           
+              <img
+                src={student.image || "/default-avatar.png"}
+                alt="Student"
+                style={styles.image}
+              />
             </div>
-            <FaEye
-              style={styles.eyeIcon}
-              className="eye-icon"
-              onClick={() => showStudentDetails(student)}
-            />
+
+            {/* Column 2: Name */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Name</div>
+              <div>{student.name}</div>
+            </div>
+
+            {/* Column 3: Suspended */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Suspended</div>
+              <div style={{ fontWeight: "bold", color: student.isSuspended ? "red" : "green" }}>
+                {student.isSuspended ? "Yes" : "No"}
+              </div>
+            </div>
+
+            {/* Column 4: Remaining Fee */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>Remaining Fee</div>
+              <div>Rs. {student.remainingFee != null ? student.remainingFee : "0"}</div>
+            </div>
+
+            {/* Column 5: Actions */}
+            <div style={styles.cardColumn}>
+              <div style={styles.columnTitle}>View</div>
+              <FaEye
+                style={styles.eyeIcon}
+                className="eye-icon"
+                onClick={() => showStudentDetails(student)}
+              />
+            </div>
           </div>
         ))
       ) : (
@@ -128,16 +142,29 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    margin: "10px 0",
-    padding: "10px",
+    flexWrap: "wrap",
+    padding: "15px",
+    marginBottom: "15px",
     border: "1px solid #ddd",
     borderRadius: "8px",
+    gap: "20px",
+  },
+  cardColumn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    minWidth: "100px",
+    textAlign: "center",
+  },
+  columnTitle: {
+    fontWeight: "bold",
+    marginBottom: "5px",
   },
   image: {
-    width: "100px",
-    height: "100px",
-    marginRight: "20px",
+    width: "80px",
+    height: "80px",
     borderRadius: "8px",
+    objectFit: "cover",
   },
   eyeIcon: {
     cursor: "pointer",
