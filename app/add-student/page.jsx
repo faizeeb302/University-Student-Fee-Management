@@ -18,7 +18,7 @@ const AddStudent = () => {
     image: "",
     street: "",
     city: "",
-    state: "",
+    district: "",
     country: "",
   });
 
@@ -49,7 +49,8 @@ const AddStudent = () => {
   const validateFields = () => {
     const phoneRegex = /^\d{10,15}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const rollRegex = /^[a-zA-Z0-9]+$/;
+    const rollRegex = /^[a-zA-Z0-9-]+$/;
+
 
     if (!formData.rollNumber || !rollRegex.test(formData.rollNumber)) {
       Swal.fire("Invalid Roll Number", "Roll number must be alphanumeric.", "warning");
@@ -101,7 +102,7 @@ const AddStudent = () => {
             </div>
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Address</h3>
-              <p>${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}</p>
+              <p>${formData.street}, ${formData.city}, ${formData.district}, ${formData.country}</p>
             </div>
           </div>
           ${formData.image ? `<div><img src="${formData.image}" style="width:150px;height:150px;border-radius:10px;border:1px solid #ccc;object-fit:cover;" /></div>` : ""}
@@ -149,7 +150,7 @@ const AddStudent = () => {
             image: "",
             street: "",
             city: "",
-            state: "",
+            district: "",
             country: "",
           });
 
@@ -272,7 +273,7 @@ const AddStudent = () => {
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Address</h2>
           <div style={styles.row}>
-            {["street", "city", "state", "country"].map((name, i) => (
+            {["street", "city", "district", "country"].map((name, i) => (
               <div key={i} style={styles.inputGroup}>
                 <label style={styles.label}>{name.charAt(0).toUpperCase() + name.slice(1)}</label>
                 <input
