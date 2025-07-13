@@ -5,7 +5,7 @@ export default function handler(req, res) {
   if (req.method === "POST") {
     const newStudent = req.body;
 
-    console.log("Received student data:", newStudent); // Log the received data
+    // console.log("Received student data:", newStudent); // Log the received data
 
     const filePath = path.join(process.cwd(), "data", "students.json");
 

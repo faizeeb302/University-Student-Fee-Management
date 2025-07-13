@@ -21,6 +21,7 @@ const AddStudent = () => {
     city: "",
     district: "",
     country: "",
+    isSuspended: false
   });
 
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
@@ -155,6 +156,7 @@ const AddStudent = () => {
             city: "",
             district: "",
             country: "",
+            isSuspended: false
           });
 
           const fileInput = document.getElementById("image");

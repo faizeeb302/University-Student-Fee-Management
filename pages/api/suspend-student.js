@@ -41,6 +41,7 @@ export default function handler(req, res) {
       suspensionFrom: from,
       suspensionTo: to,
     };
+    console.log("students",students)
 
     // Save back to file
     try {
