@@ -11,9 +11,10 @@ const Sidebar = () => {
     { label: "Add Student", route: "/add-student" },
     { label: "View List", route: "/view-list" },
     { label: "Update Student", route: "/update-student" },
-    { label: "Delete Student", route: "/delete-student" },
+    // { label: "Delete Student", route: "/delete-student" },
     { label: "Suspend Student", route: "/add-suspension" },
     { label: "Fee Submission", route: "/fee-submission" },
+    { label: "Fee Details", route: "/fee-details" },
   ];
 
   return (

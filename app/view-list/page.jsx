@@ -7,6 +7,7 @@ import Spinner from "../../components/Spinner/spinner";
 const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedYear, setSelectedYear] = useState("1st"); // Default to 1st year
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +18,9 @@ const ViewList = () => {
         const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
-        setFilteredStudents(data);
+        // Only include students from 1st year initially
+        const filtered = data.filter((s) => s.year === "1st");
+        setFilteredStudents(filtered);
       } catch (error) {
         console.error("Error fetching students:", error);
       } finally {
@@ -29,55 +32,69 @@ const ViewList = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = searchTerm.trim()
-      ? students.filter((s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : students;
+    const filtered = students.filter((s) => {
+      const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesYear = s.year === selectedYear;
+      return matchesSearch && matchesYear;
+    });
+
     setFilteredStudents(filtered);
-  }, [searchTerm, students]);
+  }, [searchTerm, selectedYear, students]);
 
- const showStudentDetails = (student) => {
-  Swal.fire({
-    title: `<strong>Student Details</strong>`,
-    html: `
-      <div style="text-align: left;">
-        <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
-        <p><strong>Name:</strong> ${student.name}</p>
-        <p><strong>Father's Name:</strong> ${student.fatherName}</p>
-        <p><strong>Department:</strong> ${student.department}</p>
-        <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
-        <p><strong>Gender:</strong> ${student.gender}</p>
-        <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
-        <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
-        <p><strong>Remaining Fee:</strong> Rs. ${student.remainingFee != null ? student.remainingFee : "0"}</p>
-      </div>
-    `,
-    showCloseButton: true,
-    confirmButtonText: "Close",
-  });
-};
-
+  const showStudentDetails = (student) => {
+    Swal.fire({
+      title: `<strong>Student Details</strong>`,
+      html: `
+        <div style="text-align: left;">
+          <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Father's Name:</strong> ${student.fatherName}</p>
+          <p><strong>Department:</strong> ${student.department}</p>
+          <p><strong>Year:</strong> ${student.year}</p>
+          <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
+          <p><strong>Gender:</strong> ${student.gender}</p>
+          <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
+          <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
+          <p><strong>Remaining Fee:</strong> Rs. ${student.remainingFee != null ? student.remainingFee : "0"}</p>
+        </div>
+      `,
+      showCloseButton: true,
+      confirmButtonText: "Close",
+    });
+  };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Student List</h1>
-      <input
-        type="text"
-        placeholder="Search by name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={styles.searchBar}
-      />
+
+      {/* Filters */}
+      <div style={styles.filtersContainer}>
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={styles.searchBar}
+        />
+
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          style={styles.dropdown}
+        >
+          <option value="1st">1st Year</option>
+          <option value="2nd">2nd Year</option>
+          <option value="3rd">3rd Year</option>
+          <option value="4th">4th Year</option>
+        </select>
+      </div>
 
       {loading ? (
         <Spinner />
       ) : filteredStudents.length > 0 ? (
         filteredStudents.map((student, index) => (
           <div key={index} style={styles.card}>
-            {/* Column 1: Image */}
             <div style={styles.cardColumn}>
-           
               <img
                 src={student.image || "/default-avatar.png"}
                 alt="Student"
@@ -85,13 +102,11 @@ const ViewList = () => {
               />
             </div>
 
-            {/* Column 2: Name */}
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Name</div>
               <div>{student.name}</div>
             </div>
 
-            {/* Column 3: Suspended */}
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Suspended</div>
               <div style={{ fontWeight: "bold", color: student.isSuspended ? "red" : "green" }}>
@@ -99,13 +114,11 @@ const ViewList = () => {
               </div>
             </div>
 
-            {/* Column 4: Remaining Fee */}
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Remaining Fee</div>
               <div>Rs. {student.remainingFee != null ? student.remainingFee : "0"}</div>
             </div>
 
-            {/* Column 5: Actions */}
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>View</div>
               <FaEye
@@ -132,13 +145,24 @@ const ViewList = () => {
 };
 
 const styles = {
-  searchBar: {
-    width: "100%",
-    maxWidth: "300px",
-    padding: "10px",
+  filtersContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
     marginBottom: "20px",
+  },
+  searchBar: {
+    padding: "10px",
     border: "1px solid #ddd",
     borderRadius: "5px",
+    flex: "1",
+    minWidth: "200px",
+  },
+  dropdown: {
+    padding: "10px",
+    border: "1px solid #ddd",
+    borderRadius: "5px",
+    minWidth: "150px",
   },
   card: {
     display: "flex",

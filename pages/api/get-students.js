@@ -8,9 +8,9 @@ export default function handler(req, res) {
 
     if (fs.existsSync(filePath)) {
       const fileData = fs.readFileSync(filePath, "utf8");
-      console.log("file",fileData)
+      // console.log("file",fileData)
       const students = JSON.parse(fileData);
-      console.log("students",students)
+      // console.log("students",students)
       res.status(200).json(students);
     } else {
       res.status(200).json([]); // Return empty array if file doesn't exist

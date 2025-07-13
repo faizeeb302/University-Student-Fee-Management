@@ -9,6 +9,7 @@ const AddStudent = () => {
     lastName: "",
     fatherName: "",
     department: "",
+    year: "1st", // Default to 1st year
     dateOfAdmission: "",
     email: "",
     phoneNumber: "",
@@ -18,12 +19,21 @@ const AddStudent = () => {
     image: "",
     street: "",
     city: "",
-    state: "",
+    district: "",
     country: "",
+    isSuspended: false
   });
 
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const genders = ["Male", "Female", "Other"];
+  const years = ["1st", "2nd", "3rd", "4th"];
+
+  const capitalizeLabel = (text) => {
+  if (!text) return "";
+  const label = text.replace(/([A-Z])/g, " $1").trim(); // add space before camelCase words
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,20 +46,16 @@ const AddStudent = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
-
     reader.onload = () => {
       setFormData((prev) => ({ ...prev, image: reader.result }));
     };
-
-    if (file) {
-      reader.readAsDataURL(file);
-    }
+    if (file) reader.readAsDataURL(file);
   };
 
   const validateFields = () => {
     const phoneRegex = /^\d{10,15}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const rollRegex = /^[a-zA-Z0-9]+$/;
+    const rollRegex = /^[a-zA-Z0-9-]+$/;
 
     if (!formData.rollNumber || !rollRegex.test(formData.rollNumber)) {
       Swal.fire("Invalid Roll Number", "Roll number must be alphanumeric.", "warning");
@@ -72,7 +78,6 @@ const AddStudent = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-
     if (!validateFields()) return;
 
     Swal.fire({
@@ -91,6 +96,7 @@ const AddStudent = () => {
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">University Information</h3>
               <p><strong>Department:</strong> ${formData.department}</p>
+              <p><strong>Year:</strong> ${formData.year} Year</p>
               <p><strong>Date of Admission:</strong> ${formData.dateOfAdmission}</p>
             </div>
             <div style="margin-bottom: 30px;">
@@ -101,7 +107,7 @@ const AddStudent = () => {
             </div>
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Address</h3>
-              <p>${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}</p>
+              <p>${formData.street}, ${formData.city}, ${formData.district}, ${formData.country}</p>
             </div>
           </div>
           ${formData.image ? `<div><img src="${formData.image}" style="width:150px;height:150px;border-radius:10px;border:1px solid #ccc;object-fit:cover;" /></div>` : ""}
@@ -127,9 +133,7 @@ const AddStudent = () => {
             body: JSON.stringify(updatedFormData),
           });
 
-          if (!response.ok) {
-            throw new Error("Failed to save student data");
-          }
+          if (!response.ok) throw new Error("Failed to save student data");
 
           await response.json();
           Swal.fire("Saved!", "Student information has been saved successfully.", "success");
@@ -140,6 +144,7 @@ const AddStudent = () => {
             lastName: "",
             fatherName: "",
             department: "",
+            year: "1st",
             dateOfAdmission: "",
             email: "",
             phoneNumber: "",
@@ -149,8 +154,9 @@ const AddStudent = () => {
             image: "",
             street: "",
             city: "",
-            state: "",
+            district: "",
             country: "",
+            isSuspended: false
           });
 
           const fileInput = document.getElementById("image");
@@ -166,53 +172,25 @@ const AddStudent = () => {
     <div style={styles.container}>
       <h1 style={styles.heading}>Add Student</h1>
       <form onSubmit={handleSave} style={styles.form}>
-        {/* Personal Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Personal Information</h2>
           <div style={styles.row}>
-            {[
-              { label: "Roll Number", name: "rollNumber" },
-              { label: "First Name", name: "firstName" },
-              { label: "Last Name", name: "lastName" },
-            ].map((field, i) => (
-              <div key={i} style={styles.inputGroup}>
-                <label style={styles.label}>{field.label}</label>
-                <input
-                  type="text"
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                />
+            {["rollNumber", "firstName", "lastName"].map((name) => (
+              <div key={name} style={styles.inputGroup}>
+                <label style={styles.label}>{capitalizeLabel(name)}</label>
+                <input type="text" name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
               </div>
             ))}
           </div>
-          {[
-            { label: "Father's Name", name: "fatherName" },
-            { label: "Date of Birth", name: "dateOfBirth", type: "date" },
-          ].map((field, i) => (
+          {["fatherName", "dateOfBirth"].map((name, i) => (
             <div key={i} style={styles.inputGroup}>
-              <label style={styles.label}>{field.label}</label>
-              <input
-                type={field.type || "text"}
-                name={field.name}
-                value={formData[field.name]}
-                onChange={handleChange}
-                required
-                style={styles.input}
-              />
+             <label style={styles.label}>{capitalizeLabel(name)}</label>
+              <input type={name === "dateOfBirth" ? "date" : "text"} name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
             </div>
           ))}
           <div style={styles.inputGroup}>
             <label style={styles.label}>Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            >
+            <select name="gender" value={formData.gender} onChange={handleChange} required style={styles.input}>
               <option value="">Select Gender</option>
               {genders.map((g, i) => (
                 <option key={i} value={g}>{g}</option>
@@ -221,89 +199,63 @@ const AddStudent = () => {
           </div>
         </div>
 
-        {/* University Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>University Information</h2>
           <div style={styles.row}>
-            {[
-              { label: "Department", name: "department" },
-              { label: "Date of Admission", name: "dateOfAdmission", type: "date" },
-            ].map((field, i) => (
-              <div key={i} style={styles.inputGroup}>
-                <label style={styles.label}>{field.label}</label>
-                <input
-                  type={field.type || "text"}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                />
-              </div>
-            ))}
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Department</label>
+              <select name="department" value={formData.department} onChange={handleChange} required style={styles.input}>
+                <option value="">Select Department</option>
+                {departments.map((dep, i) => (
+                  <option key={i} value={dep}>{dep}</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Year</label>
+              <select name="year" value={formData.year} onChange={handleChange} required style={styles.input}>
+                {years.map((yr, i) => (
+                  <option key={i} value={yr}>{yr} Year</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Date of Admission</label>
+              <input type="date" name="dateOfAdmission" value={formData.dateOfAdmission} onChange={handleChange} required style={styles.input} />
+            </div>
           </div>
         </div>
 
-        {/* Contact Info */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Contact Information</h2>
           <div style={styles.row}>
-            {[
-              { label: "Email", name: "email", type: "email" },
-              { label: "Phone Number", name: "phoneNumber", type: "tel" },
-              { label: "Emergency Contact", name: "emergencyContact", type: "tel" },
-            ].map((field, i) => (
-              <div key={i} style={styles.inputGroup}>
-                <label style={styles.label}>{field.label}</label>
-                <input
-                  type={field.type}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                />
+            {["email", "phoneNumber", "emergencyContact"].map((name) => (
+              <div key={name} style={styles.inputGroup}>
+               <label style={styles.label}>{capitalizeLabel(name)}</label>
+                <input type={name === "email" ? "email" : "tel"} name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Address */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Address</h2>
           <div style={styles.row}>
-            {["street", "city", "state", "country"].map((name, i) => (
-              <div key={i} style={styles.inputGroup}>
+            {["street", "city", "district", "country"].map((name) => (
+              <div key={name} style={styles.inputGroup}>
                 <label style={styles.label}>{name.charAt(0).toUpperCase() + name.slice(1)}</label>
-                <input
-                  type="text"
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  required
-                  style={styles.input}
-                />
+                <input type="text" name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Image Upload */}
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Upload Image</h2>
-          <input
-            id="image"
-            name="image"
-            type="file"
-            onChange={handleImageChange}
-            accept="image/*"
-            style={styles.input}
-          />
+          <input id="image" name="image" type="file" onChange={handleImageChange} accept="image/*" style={styles.input} />
         </div>
 
-        <button type="submit" style={styles.button}>
-          Save Student
-        </button>
+        <button type="submit" style={styles.button}>Save Student</button>
       </form>
     </div>
   );
