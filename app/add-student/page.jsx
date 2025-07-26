@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+import { IoWarningOutline } from "react-icons/io5";
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
@@ -24,57 +25,111 @@ const AddStudent = () => {
     isSuspended: false
   });
 
+  const [rollNumberError, setRollNumberError] = useState("");
+
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const genders = ["Male", "Female", "Other"];
   const years = ["1st", "2nd", "3rd", "4th"];
 
   const capitalizeLabel = (text) => {
-  if (!text) return "";
-  const label = text.replace(/([A-Z])/g, " $1").trim(); // add space before camelCase words
-  return label.charAt(0).toUpperCase() + label.slice(1);
-};
+    if (!text) return "";
+    const label = text.replace(/([A-Z])/g, " $1").trim(); // add space before camelCase words
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  };
 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "rollNumber") {
+      const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+      if (value && !rollRegex.test(value)) {
+        setRollNumberError("Roll number must be in format: 21-BSCS-38");
+      } else {
+        setRollNumberError("");
+      }
+    }
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData((prev) => ({ ...prev, image: reader.result }));
-    };
-    if (file) reader.readAsDataURL(file);
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const maxSize = 100 * 1024; // 100 KB
+
+  if (file.size > maxSize) {
+    Swal.fire("Image Too Large", "Please upload an image smaller than 100KB.", "warning");
+    e.target.value = ""; // clear file input
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    setFormData((prev) => ({ ...prev, image: reader.result }));
   };
+  reader.readAsDataURL(file);
+};
+
 
   const validateFields = () => {
     const phoneRegex = /^\d{10,15}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const rollRegex = /^[a-zA-Z0-9-]+$/;
+    const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+    const nameRegex = /^[a-zA-Z\s]+$/;
 
     if (!formData.rollNumber || !rollRegex.test(formData.rollNumber)) {
       Swal.fire("Invalid Roll Number", "Roll number must be alphanumeric.", "warning");
       return false;
     }
+
+    if (!nameRegex.test(formData.firstName)) {
+      Swal.fire("Invalid First Name", "Only alphabet characters and spaces are allowed in First Name.", "warning");
+      return false;
+    }
+
+    if (!nameRegex.test(formData.lastName)) {
+      Swal.fire("Invalid Last Name", "Only alphabet characters and spaces are allowed in Last Name.", "warning");
+      return false;
+    }
+
+    if (!nameRegex.test(formData.fatherName)) {
+      Swal.fire("Invalid Father's Name", "Only alphabet characters and spaces are allowed in Father's Name.", "warning");
+      return false;
+    }
+
     if (!emailRegex.test(formData.email)) {
       Swal.fire("Invalid Email", "Please enter a valid email address.", "warning");
       return false;
     }
+
     if (!phoneRegex.test(formData.phoneNumber)) {
       Swal.fire("Invalid Phone Number", "Phone number should be 10–15 digits.", "warning");
       return false;
     }
+
     if (!phoneRegex.test(formData.emergencyContact)) {
       Swal.fire("Invalid Emergency Contact", "Emergency contact should be 10–15 digits.", "warning");
       return false;
     }
+
+    if (formData.phoneNumber === formData.emergencyContact) {
+  Swal.fire(
+    "Invalid Contact Numbers",
+    "Phone number and emergency contact cannot be the same.",
+    "warning"
+  );
+  return false;
+}
+
+
     return true;
   };
+
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -178,13 +233,26 @@ const AddStudent = () => {
             {["rollNumber", "firstName", "lastName"].map((name) => (
               <div key={name} style={styles.inputGroup}>
                 <label style={styles.label}>{capitalizeLabel(name)}</label>
-                <input type="text" name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
+                <input
+                  type="text"
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                />
+                {name === "rollNumber" && rollNumberError && (
+                  <div style={styles.warning}>
+                    <IoWarningOutline style={{ color: "#d9534f", fontSize: "1.2rem" }} />
+                    <span>Invalid Roll Number <span style={styles.example}>(e.g., 21-BSCS-38)</span></span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
           {["fatherName", "dateOfBirth"].map((name, i) => (
             <div key={i} style={styles.inputGroup}>
-             <label style={styles.label}>{capitalizeLabel(name)}</label>
+              <label style={styles.label}>{capitalizeLabel(name)}</label>
               <input type={name === "dateOfBirth" ? "date" : "text"} name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
             </div>
           ))}
@@ -231,7 +299,7 @@ const AddStudent = () => {
           <div style={styles.row}>
             {["email", "phoneNumber", "emergencyContact"].map((name) => (
               <div key={name} style={styles.inputGroup}>
-               <label style={styles.label}>{capitalizeLabel(name)}</label>
+                <label style={styles.label}>{capitalizeLabel(name)}</label>
                 <input type={name === "email" ? "email" : "tel"} name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
               </div>
             ))}
@@ -296,6 +364,21 @@ const styles = {
     gap: "20px",
     flexWrap: "wrap",
   },
+ warning: {
+  color: "#d9534f",
+  marginTop: "5px",
+  fontSize: "0.9rem",
+  fontWeight: "500",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+},
+example: {
+  fontStyle: "italic",
+  fontWeight: "400",
+  marginLeft: "4px",
+  color: "#a94442",
+},
   inputGroup: {
     flex: 1,
     minWidth: "220px",
