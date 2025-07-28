@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
-import { Country, State, City }  from 'country-state-city';
+import { Country, State, City } from 'country-state-city';
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
@@ -22,12 +22,13 @@ const AddStudent = () => {
     street: "",
     city: "",
     district: "",
-    state:"",
+    state: "",
     country: "",
+      residenceType: "",
     isSuspended: false
   });
 
-   const [rollNumberError, setRollNumberError] = useState("");
+  const [rollNumberError, setRollNumberError] = useState("");
   const [countries] = useState(Country.getAllCountries());
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -35,6 +36,7 @@ const AddStudent = () => {
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const genders = ["Male", "Female", "Other"];
   const years = ["1st", "2nd", "3rd", "4th"];
+  const residenceOptions = ["Urban", "Rural"];
 
   const capitalizeLabel = (text) => {
     if (!text) return "";
@@ -62,13 +64,13 @@ const AddStudent = () => {
       setStates(countryStates);
       setCities([]);
       setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
- 
+
     }
 
     if (name === "state") {
       const selectedCountry = countries.find((c) => c.name === formData.country);
       const selectedState = states.find((c) => c.name === value);
-      tempValue= selectedState?.name
+      tempValue = selectedState?.name
       const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
       setCities(stateCities);
       setFormData((prevData) => ({ ...prevData, city: "" }));
@@ -148,6 +150,10 @@ const AddStudent = () => {
 
     if (!formData.country || !formData.state || !formData.city) {
       Swal.fire("Incomplete Address", "Please select country, state, and city.", "warning");
+      return false;
+    }
+      if (!formData.residenceType) {
+      Swal.fire("Missing Information", "Please select whether the student resides in an Urban or Rural area.", "warning");
       return false;
     }
 
@@ -233,8 +239,9 @@ const AddStudent = () => {
             street: "",
             city: "",
             district: "",
-            state:"",
+            state: "",
             country: "",
+              residenceType: "",
             isSuspended: false
           });
 
@@ -363,6 +370,16 @@ const AddStudent = () => {
           </div>
 
           <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>Residence Type</label>
+            <select name="residenceType" value={formData.residenceType} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+              <option value="">Select Area</option>
+              {residenceOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '220px' }}>
             <label>District</label>
             <input type="text" name="district" value={formData.district} onChange={handleChange} style={{ width: '100%', padding: '10px' }} />
           </div>
@@ -419,21 +436,21 @@ const styles = {
     gap: "20px",
     flexWrap: "wrap",
   },
- warning: {
-  color: "#d9534f",
-  marginTop: "5px",
-  fontSize: "0.9rem",
-  fontWeight: "500",
-  display: "flex",
-  alignItems: "center",
-  gap: "6px",
-},
-example: {
-  fontStyle: "italic",
-  fontWeight: "400",
-  marginLeft: "4px",
-  color: "#a94442",
-},
+  warning: {
+    color: "#d9534f",
+    marginTop: "5px",
+    fontSize: "0.9rem",
+    fontWeight: "500",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  },
+  example: {
+    fontStyle: "italic",
+    fontWeight: "400",
+    marginLeft: "4px",
+    color: "#a94442",
+  },
   inputGroup: {
     flex: 1,
     minWidth: "220px",
