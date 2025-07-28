@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
+import { Country, State, City }  from 'country-state-city';
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
@@ -21,11 +22,15 @@ const AddStudent = () => {
     street: "",
     city: "",
     district: "",
+    state:"",
     country: "",
     isSuspended: false
   });
 
-  const [rollNumberError, setRollNumberError] = useState("");
+   const [rollNumberError, setRollNumberError] = useState("");
+  const [countries] = useState(Country.getAllCountries());
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
 
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const genders = ["Male", "Female", "Other"];
@@ -33,13 +38,13 @@ const AddStudent = () => {
 
   const capitalizeLabel = (text) => {
     if (!text) return "";
-    const label = text.replace(/([A-Z])/g, " $1").trim(); // add space before camelCase words
+    const label = text.replace(/([A-Z])/g, " $1").trim();
     return label.charAt(0).toUpperCase() + label.slice(1);
   };
 
-
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let tempValue = "";
 
     if (name === "rollNumber") {
       const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
@@ -50,31 +55,50 @@ const AddStudent = () => {
       }
     }
 
+    if (name === "country") {
+      const selectedCountry = countries.find((c) => c.name === value);
+      tempValue = selectedCountry?.name
+      const countryStates = State.getStatesOfCountry(selectedCountry?.isoCode);
+      setStates(countryStates);
+      setCities([]);
+      setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
+ 
+    }
+
+    if (name === "state") {
+      const selectedCountry = countries.find((c) => c.name === formData.country);
+      const selectedState = states.find((c) => c.name === value);
+      tempValue= selectedState?.name
+      const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
+      setCities(stateCities);
+      setFormData((prevData) => ({ ...prevData, city: "" }));
+    }
+
+    tempValue = tempValue == "" ? value : tempValue;
+
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: tempValue,
     }));
   };
 
-const handleImageChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const maxSize = 100 * 1024; // 100 KB
+    const maxSize = 101 * 1024;
+    if (file.size > maxSize) {
+      Swal.fire("Image Too Large", "Please upload an image smaller than 100KB.", "warning");
+      e.target.value = "";
+      return;
+    }
 
-  if (file.size > maxSize) {
-    Swal.fire("Image Too Large", "Please upload an image smaller than 100KB.", "warning");
-    e.target.value = ""; // clear file input
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    setFormData((prev) => ({ ...prev, image: reader.result }));
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
-
 
   const validateFields = () => {
     const phoneRegex = /^\d{10,15}$/;
@@ -118,18 +142,17 @@ const handleImageChange = (e) => {
     }
 
     if (formData.phoneNumber === formData.emergencyContact) {
-  Swal.fire(
-    "Invalid Contact Numbers",
-    "Phone number and emergency contact cannot be the same.",
-    "warning"
-  );
-  return false;
-}
+      Swal.fire("Invalid Contact Numbers", "Phone number and emergency contact cannot be the same.", "warning");
+      return false;
+    }
 
+    if (!formData.country || !formData.state || !formData.city) {
+      Swal.fire("Incomplete Address", "Please select country, state, and city.", "warning");
+      return false;
+    }
 
     return true;
   };
-
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -162,7 +185,7 @@ const handleImageChange = (e) => {
             </div>
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Address</h3>
-              <p>${formData.street}, ${formData.city}, ${formData.district}, ${formData.country}</p>
+              <p>${formData.street}, ${formData.city}, ${formData.district}, ${formData.state}, ${formData.country}</p>
             </div>
           </div>
           ${formData.image ? `<div><img src="${formData.image}" style="width:150px;height:150px;border-radius:10px;border:1px solid #ccc;object-fit:cover;" /></div>` : ""}
@@ -210,6 +233,7 @@ const handleImageChange = (e) => {
             street: "",
             city: "",
             district: "",
+            state:"",
             country: "",
             isSuspended: false
           });
@@ -306,15 +330,46 @@ const handleImageChange = (e) => {
           </div>
         </div>
 
-        <div style={styles.section}>
-          <h2 style={styles.sectionHeading}>Address</h2>
-          <div style={styles.row}>
-            {["street", "city", "district", "country"].map((name) => (
-              <div key={name} style={styles.inputGroup}>
-                <label style={styles.label}>{name.charAt(0).toUpperCase() + name.slice(1)}</label>
-                <input type="text" name={name} value={formData[name]} onChange={handleChange} required style={styles.input} />
-              </div>
-            ))}
+        <h2>Address</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>Country</label>
+            <select name="country" value={formData.country} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+              <option value="">Select Country</option>
+              {countries.map((country) => (
+                <option key={country.isoCode} value={country.name}>{country.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>State</label>
+            <select name="state" value={formData.state} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+              <option value="">Select State</option>
+              {states.map((state) => (
+                <option key={state.isoCode} value={state.name}>{state.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>City</label>
+            <select name="city" value={formData.city} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+              <option value="">Select City</option>
+              {cities.map((city, idx) => (
+                <option key={idx} value={city.name}>{city.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>District</label>
+            <input type="text" name="district" value={formData.district} onChange={handleChange} style={{ width: '100%', padding: '10px' }} />
+          </div>
+
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <label>Street</label>
+            <input type="text" name="street" value={formData.street} onChange={handleChange} style={{ width: '100%', padding: '10px' }} />
           </div>
         </div>
 
