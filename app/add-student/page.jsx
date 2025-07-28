@@ -41,7 +41,7 @@ const AddStudent = () => {
   const capitalizeLabel = (text) => {
     if (!text) return "";
     const label = text.replace(/([A-Z])/g, " $1").trim();
-    return label.charAt(0).toUpperCase() + label.slice(1);
+    return text == "fatherName" ? "Father's Name" : label.charAt(0).toUpperCase() + label.slice(1);
   };
 
   const handleChange = (e) => {
@@ -337,11 +337,12 @@ const AddStudent = () => {
           </div>
         </div>
 
-        <h2>Address</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>Country</label>
-            <select name="country" value={formData.country} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+ <div style={styles.section}>
+        <h2 style={styles.sectionHeading}>Address</h2>
+        <div style={styles.row}>
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>Country</label>
+            <select name="country" value={formData.country} onChange={handleChange} style={styles.input}>
               <option value="">Select Country</option>
               {countries.map((country) => (
                 <option key={country.isoCode} value={country.name}>{country.name}</option>
@@ -349,9 +350,9 @@ const AddStudent = () => {
             </select>
           </div>
 
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>State</label>
-            <select name="state" value={formData.state} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>State</label>
+            <select name="state" value={formData.state} onChange={handleChange} style={styles.input}>
               <option value="">Select State</option>
               {states.map((state) => (
                 <option key={state.isoCode} value={state.name}>{state.name}</option>
@@ -359,9 +360,9 @@ const AddStudent = () => {
             </select>
           </div>
 
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>City</label>
-            <select name="city" value={formData.city} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>City</label>
+            <select name="city" value={formData.city} onChange={handleChange} style={styles.input}>
               <option value="">Select City</option>
               {cities.map((city, idx) => (
                 <option key={idx} value={city.name}>{city.name}</option>
@@ -369,9 +370,9 @@ const AddStudent = () => {
             </select>
           </div>
 
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>Residence Type</label>
-            <select name="residenceType" value={formData.residenceType} onChange={handleChange} style={{ width: '100%', padding: '10px' }}>
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>Residence Type</label>
+            <select name="residenceType" value={formData.residenceType} onChange={handleChange} style={styles.input}>
               <option value="">Select Area</option>
               {residenceOptions.map((option) => (
                 <option key={option} value={option}>{option}</option>
@@ -379,14 +380,15 @@ const AddStudent = () => {
             </select>
           </div>
 
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>District</label>
-            <input type="text" name="district" value={formData.district} onChange={handleChange} style={{ width: '100%', padding: '10px' }} />
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>District</label>
+            <input type="text" name="district" value={formData.district} onChange={handleChange} style={styles.input} />
           </div>
 
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <label>Street</label>
-            <input type="text" name="street" value={formData.street} onChange={handleChange} style={{ width: '100%', padding: '10px' }} />
+          <div style={styles.inputGroup}>
+            <label  style={styles.label}>Street</label>
+            <input type="text" name="street" value={formData.street} onChange={handleChange} style={styles.input} />
+          </div>
           </div>
         </div>
 
