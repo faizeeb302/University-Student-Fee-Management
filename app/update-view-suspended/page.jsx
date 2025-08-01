@@ -32,7 +32,7 @@ const ViewList = () => {
   useEffect(() => {
     const filtered = searchTerm.trim()
       ? students.filter((s) =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase())
+          s.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : students;
     setFilteredStudents(filtered);
@@ -59,85 +59,81 @@ const ViewList = () => {
     }));
   };
 
- const confirmSuspension = async (student, index) => {
-  const { from, to } = suspensionStates[index] || {};
+  const confirmSuspension = async (student, index) => {
+    const { from, to } = suspensionStates[index] || {};
 
-  if (!from || !to) {
-    Swal.fire("Missing Dates", "Please select both dates.", "warning");
-    return;
-  }
-
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-
-  if (fromDate > toDate) {
-    Swal.fire("Invalid Range", "`From` date must be before `To` date.", "error");
-    return;
-  }
-
-  const confirmResult = await Swal.fire({
-    title: "Confirm Suspension",
-    html: `
-      Are you sure you want to suspend <strong>${student.name}</strong> from <strong>${from}</strong> to <strong>${to}</strong>?
-    `,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes, Suspend",
-  });
-
-  if (confirmResult.isConfirmed) {
-    try {
-      const response = await fetch("/api/suspend-student", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          rollNumber: student.rollNumber,
-          from,
-          to,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Swal.fire("Suspended!", `${student.name} has been suspended.`, "success");
-        setSuspensionStates((prev) => ({
-          ...prev,
-          [index]: { show: false, from: "", to: "" },
-        }));
-
-        // Optionally update student list or state if needed
-        setStudents((prev) =>
-          prev.map((s) =>
-            s.rollNumber === student.rollNumber
-              ? { ...s, isSuspended: true }
-              : s
-          )
-        );
-      } else {
-        Swal.fire("Error", result.message || "Failed to suspend student.", "error");
-      }
-    } catch (error) {
-      console.error("Suspension error:", error);
-      Swal.fire("Error", "An unexpected error occurred.", "error");
+    if (!from || !to) {
+      Swal.fire("Missing Dates", "Please select both dates.", "warning");
+      return;
     }
-  }
-};
 
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (fromDate > toDate) {
+      Swal.fire("Invalid Range", "`From` date must be before `To` date.", "error");
+      return;
+    }
+
+    const confirmResult = await Swal.fire({
+      title: "Confirm Suspension",
+      html: `
+        Are you sure you want to suspend <strong>${student.rollNumber}</strong> from <strong>${from}</strong> to <strong>${to}</strong>?
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Suspend",
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        const response = await fetch("/api/suspend-student", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rollNumber: student.rollNumber,
+            from,
+            to,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          Swal.fire("Suspended!", `${student.rollNumber} has been suspended.`, "success");
+          setSuspensionStates((prev) => ({
+            ...prev,
+            [index]: { show: false, from: "", to: "" },
+          }));
+
+          setStudents((prev) =>
+            prev.map((s) =>
+              s.rollNumber === student.rollNumber
+                ? { ...s, isSuspended: true }
+                : s
+            )
+          );
+        } else {
+          Swal.fire("Error", result.message || "Failed to suspend student.", "error");
+        }
+      } catch (error) {
+        console.error("Suspension error:", error);
+        Swal.fire("Error", "An unexpected error occurred.", "error");
+      }
+    }
+  };
 
   const removeSuspension = (student) => {
     Swal.fire({
       title: "Remove Suspension",
-      text: `Are you sure you want to remove suspension for ${student.name}?`,
+      text: `Are you sure you want to remove suspension for ${student.rollNumber}?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, Remove",
     }).then((result) => {
       if (result.isConfirmed) {
-        // TODO: Call API or update state to remove suspension
-        Swal.fire("Removed!", `${student.name}'s suspension has been removed.`, "success");
+        // TODO: Call API to remove suspension
+        Swal.fire("Removed!", `${student.rollNumber}'s suspension has been removed.`, "success");
       }
     });
   };
@@ -148,6 +144,7 @@ const ViewList = () => {
       html: `
         <div style="text-align: left;">
           <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+          <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
           <p><strong>Name:</strong> ${student.name}</p>
           <p><strong>Father's Name:</strong> ${student.fatherName}</p>
           <p><strong>Department:</strong> ${student.department}</p>
@@ -162,11 +159,12 @@ const ViewList = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Student List</h1>
+    <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
+      <h1 style={styles.title}>Student List</h1>
+
       <input
         type="text"
-        placeholder="Search by name..."
+        placeholder="Roll Number (e.g., 21-BSCS-38)"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         style={styles.searchBar}
@@ -187,22 +185,16 @@ const ViewList = () => {
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <p><strong>Name:</strong> {student.name}</p>
+                <p><strong>Roll Number:</strong> {student.rollNumber}</p>
                 <p><strong>Department:</strong> {student.department}</p>
 
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
-                  <button
-                    onClick={() => toggleSuspension(index)}
-                    style={styles.suspendButton}
-                  >
+                  <button onClick={() => toggleSuspension(index)} style={styles.suspendButton}>
                     {suspension.show ? "Hide Suspension" : "Suspend"}
                   </button>
 
                   {student.isSuspended && (
-                    <button
-                      onClick={() => removeSuspension(student)}
-                      style={styles.removeButton}
-                    >
+                    <button onClick={() => removeSuspension(student)} style={styles.removeButton}>
                       Remove Suspension
                     </button>
                   )}
@@ -265,14 +257,20 @@ const ViewList = () => {
 };
 
 const styles = {
-  searchBar: {
-    width: "100%",
-    maxWidth: "300px",
-    padding: "10px",
-    marginBottom: "20px",
-    border: "1px solid #ddd",
-    borderRadius: "5px",
+  title: {
+    textAlign: "center",
+    fontSize: "2rem",
+    marginBottom: "25px",
+    color: "#333",
   },
+ searchBar: {
+  padding: "10px",
+  marginBottom: "20px",
+  border: "1px solid #ccc",
+  borderRadius: "6px",
+  fontSize: "1rem",
+  minWidth: "260px",
+},
   card: {
     display: "flex",
     alignItems: "flex-start",
