@@ -12,7 +12,7 @@ const Login = () => {
 
     if (username === "admin" && password === "password") {
       sessionStorage.setItem("isAdminLoggedIn", "true");
-      router.push("/add-student"); // Redirect to admin page
+      router.push("/add"); // Redirect to admin page
     } else {
       alert("Invalid credentials");
     }
