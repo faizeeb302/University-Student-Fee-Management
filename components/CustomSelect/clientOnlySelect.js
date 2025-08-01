@@ -1,10 +1,8 @@
-// components/ClientOnlySelect.js
-"use client"
-import Select from 'react-select';
-import React from 'react';
+"use client";
 
-const ClientOnlySelect = (props) => {
-  return <Select {...props} />;
-};
+import dynamic from "next/dynamic";
 
-export default ClientOnlySelect;
+// Dynamically import react-select with SSR disabled
+const Select = dynamic(() => import("react-select"), { ssr: false });
+
+export default Select;

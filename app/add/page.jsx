@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
 import { Country, State, City } from 'country-state-city';
 import Select from "react-select";
-// import ClientOnlySelect from '../../components/CustomSelect/clientOnlySelect';
+import ClientOnlySelect from '../../components/CustomSelect/clientOnlySelect';
 
 
 const AddStudent = () => {
@@ -369,7 +369,7 @@ const AddStudent = () => {
           <div style={styles.row}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Country</label>
-              <Select
+              <ClientOnlySelect
               instanceId="country-select"
                 options={countryOptions}
                 isSearchable
@@ -394,7 +394,7 @@ const AddStudent = () => {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>State</label>
-              <Select
+              <ClientOnlySelect
                 options={stateOptions}
                 isSearchable
                 value={stateOptions.find((s) => s.value === formData.state) || null}
@@ -417,7 +417,7 @@ const AddStudent = () => {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>City</label>
-              <Select
+              <ClientOnlySelect
                 options={cityOptions}
                 isClearable
                 isSearchable
@@ -450,7 +450,7 @@ const AddStudent = () => {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Residence Type</label>
-              <Select
+              <ClientOnlySelect
                 options={residenceTypeOptions}
                 isSearchable
                 value={residenceTypeOptions.find((r) => r.value === formData.residenceType) || null}
@@ -549,7 +549,7 @@ const styles = {
   },
   input: {
     width: "100%",
-    padding: "8px",
+    padding: "10px",
     fontSize: "1rem",
     border: "1px solid #ccc",
     borderRadius: "5px",
