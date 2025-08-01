@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
 import { Country, State, City } from 'country-state-city';
+import Select from "react-select";
+
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +26,7 @@ const AddStudent = () => {
     district: "",
     state: "",
     country: "",
-      residenceType: "",
+    residenceType: "",
     isSuspended: false
   });
 
@@ -37,6 +39,12 @@ const AddStudent = () => {
   const genders = ["Male", "Female", "Other"];
   const years = ["1st", "2nd", "3rd", "4th"];
   const residenceOptions = ["Urban", "Rural"];
+
+  
+  const cityOptions = cities.map((city) => ({
+    value: city.name,
+    label: city.name,
+  }));
 
   const capitalizeLabel = (text) => {
     if (!text) return "";
@@ -152,7 +160,7 @@ const AddStudent = () => {
       Swal.fire("Incomplete Address", "Please select country, state, and city.", "warning");
       return false;
     }
-      if (!formData.residenceType) {
+    if (!formData.residenceType) {
       Swal.fire("Missing Information", "Please select whether the student resides in an Urban or Rural area.", "warning");
       return false;
     }
@@ -241,7 +249,7 @@ const AddStudent = () => {
             district: "",
             state: "",
             country: "",
-              residenceType: "",
+            residenceType: "",
             isSuspended: false
           });
 
@@ -337,58 +345,81 @@ const AddStudent = () => {
           </div>
         </div>
 
- <div style={styles.section}>
-        <h2 style={styles.sectionHeading}>Address</h2>
-        <div style={styles.row}>
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>Country</label>
-            <select name="country" value={formData.country} onChange={handleChange} style={styles.input}>
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country.isoCode} value={country.name}>{country.name}</option>
-              ))}
-            </select>
-          </div>
+        <div style={styles.section}>
+          <h2 style={styles.sectionHeading}>Address</h2>
+          <div style={styles.row}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Country</label>
+              <select name="country" value={formData.country} onChange={handleChange} style={styles.input}>
+                <option value="">Select Country</option>
+                {countries.map((country) => (
+                  <option key={country.isoCode} value={country.name}>{country.name}</option>
+                ))}
+              </select>
+            </div>
 
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>State</label>
-            <select name="state" value={formData.state} onChange={handleChange} style={styles.input}>
-              <option value="">Select State</option>
-              {states.map((state) => (
-                <option key={state.isoCode} value={state.name}>{state.name}</option>
-              ))}
-            </select>
-          </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>State</label>
+              <select name="state" value={formData.state} onChange={handleChange} style={styles.input}>
+                <option value="">Select State</option>
+                {states.map((state) => (
+                  <option key={state.isoCode} value={state.name}>{state.name}</option>
+                ))}
+              </select>
+            </div>
 
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>City</label>
-            <select name="city" value={formData.city} onChange={handleChange} style={styles.input}>
-              <option value="">Select City</option>
-              {cities.map((city, idx) => (
-                <option key={idx} value={city.name}>{city.name}</option>
-              ))}
-            </select>
-          </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>City</label>
+              <Select
+                options={cityOptions}
+                isClearable
+                isSearchable
+                placeholder="Select or type a city"
+                onChange={(selectedOption) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    city: selectedOption ? selectedOption.value : "",
+                  }));
+                }}
+                onInputChange={(inputValue, { action }) => {
+                  if (action === "input-change") {
+                    setFormData((prev) => ({
+                      ...prev,
+                      city: inputValue,
+                    }));
+                  }
+                }}
+                value={formData.city ? { label: formData.city, value: formData.city } : null}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: "38px",
+                    fontSize: "1rem",
+                  }),
+                }}
+              />
+            </div>
 
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>Residence Type</label>
-            <select name="residenceType" value={formData.residenceType} onChange={handleChange} style={styles.input}>
-              <option value="">Select Area</option>
-              {residenceOptions.map((option) => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
-          </div>
 
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>District</label>
-            <input type="text" name="district" value={formData.district} onChange={handleChange} style={styles.input} />
-          </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Residence Type</label>
+              <select name="residenceType" value={formData.residenceType} onChange={handleChange} style={styles.input}>
+                <option value="">Select Area</option>
+                {residenceOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
 
-          <div style={styles.inputGroup}>
-            <label  style={styles.label}>Street</label>
-            <input type="text" name="street" value={formData.street} onChange={handleChange} style={styles.input} />
-          </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>District</label>
+              <input type="text" name="district" value={formData.district} onChange={handleChange} style={styles.input} />
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Street</label>
+              <input type="text" name="street" value={formData.street} onChange={handleChange} style={styles.input} />
+            </div>
           </div>
         </div>
 
