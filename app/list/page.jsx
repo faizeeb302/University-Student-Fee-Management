@@ -3,13 +3,15 @@ import React, { useEffect, useState } from "react";
 import { FaEye } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Spinner from "../../components/Spinner/spinner";
+import { IoWarningOutline } from "react-icons/io5";
 
 const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("1st"); // Default to 1st year
+  const [selectedYear, setSelectedYear] = useState("1st");
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [rollNumberError, setRollNumberError] = useState("");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -18,7 +20,6 @@ const ViewList = () => {
         const response = await fetch("/api/get-students");
         const data = await response.json();
         setStudents(data);
-        // Only include students from 1st year initially
         const filtered = data.filter((s) => s.year === "1st");
         setFilteredStudents(filtered);
       } catch (error) {
@@ -32,8 +33,18 @@ const ViewList = () => {
   }, []);
 
   useEffect(() => {
+    const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+
+    if (searchTerm && !rollRegex.test(searchTerm)) {
+      setRollNumberError("Invalid format (e.g., 21-BSCS-38)");
+    } else {
+      setRollNumberError("");
+    }
+
     const filtered = students.filter((s) => {
-      const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = s.rollNumber
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesYear = s.year === selectedYear;
       return matchesSearch && matchesYear;
     });
@@ -47,6 +58,7 @@ const ViewList = () => {
       html: `
         <div style="text-align: left;">
           <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+          <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
           <p><strong>Name:</strong> ${student.name}</p>
           <p><strong>Father's Name:</strong> ${student.fatherName}</p>
           <p><strong>Department:</strong> ${student.department}</p>
@@ -64,18 +76,26 @@ const ViewList = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Student List</h1>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Student List</h1>
 
       {/* Filters */}
       <div style={styles.filtersContainer}>
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={styles.searchBar}
-        />
+        <div style={styles.inputGroup}>
+          <input
+            type="text"
+            placeholder="Enter Roll Number (e.g., 21-BSCS-38)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={styles.searchBar}
+          />
+          {rollNumberError && (
+            <div style={styles.warning}>
+              <IoWarningOutline style={{ color: "#d9534f", fontSize: "1.2rem" }} />
+              <span>{rollNumberError}</span>
+            </div>
+          )}
+        </div>
 
         <select
           value={selectedYear}
@@ -103,20 +123,27 @@ const ViewList = () => {
             </div>
 
             <div style={styles.cardColumn}>
-              <div style={styles.columnTitle}>Name</div>
-              <div>{student.name}</div>
+              <div style={styles.columnTitle}>Roll Number</div>
+              <div>{student.rollNumber}</div>
             </div>
 
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Suspended</div>
-              <div style={{ fontWeight: "bold", color: student.isSuspended ? "red" : "green" }}>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  color: student.isSuspended ? "red" : "green",
+                }}
+              >
                 {student.isSuspended ? "Yes" : "No"}
               </div>
             </div>
 
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Remaining Fee</div>
-              <div>Rs. {student.remainingFee != null ? student.remainingFee : "0"}</div>
+              <div>
+                Rs. {student.remainingFee != null ? student.remainingFee : "0"}
+              </div>
             </div>
 
             <div style={styles.cardColumn}>
@@ -130,7 +157,7 @@ const ViewList = () => {
           </div>
         ))
       ) : (
-        <p>No students found.</p>
+        <p style={{ marginTop: "20px" }}>No students found.</p>
       )}
 
       <style>
@@ -145,24 +172,51 @@ const ViewList = () => {
 };
 
 const styles = {
+  container: {
+    maxWidth: "1000px",
+    margin: "0 auto",
+    padding: "20px",
+  },
+  title: {
+    textAlign: "center",
+    fontSize: "2rem",
+    marginBottom: "25px",
+    color: "#333",
+  },
   filtersContainer: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "10px",
-    marginBottom: "20px",
+    gap: "15px",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    marginBottom: "30px",
+  },
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    flex: "1",
+    minWidth: "260px",
   },
   searchBar: {
     padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "5px",
-    flex: "1",
-    minWidth: "200px",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    fontSize: "1rem",
+  },
+  warning: {
+    color: "#d9534f",
+    marginTop: "6px",
+    fontSize: "0.9rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
   },
   dropdown: {
     padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "5px",
-    minWidth: "150px",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    minWidth: "180px",
+    fontSize: "1rem",
   },
   card: {
     display: "flex",

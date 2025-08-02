@@ -8,12 +8,12 @@ const Sidebar = () => {
   const [hoveredTab, setHoveredTab] = useState(null);
 
   const tabs = [
-    { label: "Add Student", route: "/add-student" },
-    { label: "View List", route: "/view-list" },
-    { label: "Update Student", route: "/update-student" },
+    { label: "Add", route: "/add" },
+    { label: "List", route: "/list" },
+    { label: "Update", route: "/update" },
     // { label: "Delete Student", route: "/delete-student" },
-    { label: "Suspend Student", route: "/add-suspension" },
-    { label: "Fee Submission", route: "/fee-submission" },
+    { label: "Update/View Suspended", route: "/update-view-suspended" },
+    { label: "Fees", route: "/fees" },
     { label: "Fee Details", route: "/fee-details" },
   ];
 
