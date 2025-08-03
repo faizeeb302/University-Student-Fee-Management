@@ -166,12 +166,12 @@ const AddStudent = () => {
     }
 
     if (!phoneRegex.test(formData.phoneNumber)) {
-      Swal.fire("Invalid Phone Number", "Phone number should be 10–15 digits.", "warning");
+      Swal.fire("Invalid Phone Number", "Phone number should be 11 digits.", "warning");
       return false;
     }
 
     if (!phoneRegex.test(formData.emergencyContact)) {
-      Swal.fire("Invalid Emergency Contact", "Emergency contact should be 10–15 digits.", "warning");
+      Swal.fire("Invalid Emergency Contact", "Emergency contact should be 11 digits.", "warning");
       return false;
     }
 
