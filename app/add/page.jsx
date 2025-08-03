@@ -71,45 +71,50 @@ const AddStudent = () => {
     return text == "fatherName" ? "Father's Name" : label.charAt(0).toUpperCase() + label.slice(1);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    let tempValue = "";
+ const handleChange = (e) => {
+  let { name, value } = e.target;
+  let tempValue = "";
 
-    if (name === "rollNumber") {
-      const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-      if (value && !rollRegex.test(value)) {
-        setRollNumberError("Roll number must be in format: 21-BSCS-38");
-      } else {
-        setRollNumberError("");
-      }
+  // Ensure phone and emergencyContact accept only digits
+  if (name === "phoneNumber" || name === "emergencyContact") {
+    value = value.replace(/\D/g, ""); // Remove non-digit characters
+  }
+
+  if (name === "rollNumber") {
+    const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+    if (value && !rollRegex.test(value)) {
+      setRollNumberError("Roll number must be in format: 21-BSCS-38");
+    } else {
+      setRollNumberError("");
     }
+  }
 
-    if (name === "country") {
-      const selectedCountry = countries.find((c) => c.name === value);
-      tempValue = selectedCountry?.name
-      const countryStates = State.getStatesOfCountry(selectedCountry?.isoCode);
-      setStates(countryStates);
-      setCities([]);
-      setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
+  if (name === "country") {
+    const selectedCountry = countries.find((c) => c.name === value);
+    tempValue = selectedCountry?.name;
+    const countryStates = State.getStatesOfCountry(selectedCountry?.isoCode);
+    setStates(countryStates);
+    setCities([]);
+    setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
+  }
 
-    }
+  if (name === "state") {
+    const selectedCountry = countries.find((c) => c.name === formData.country);
+    const selectedState = states.find((c) => c.name === value);
+    tempValue = selectedState?.name;
+    const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
+    setCities(stateCities);
+    setFormData((prevData) => ({ ...prevData, city: "" }));
+  }
 
-    if (name === "state") {
-      const selectedCountry = countries.find((c) => c.name === formData.country);
-      const selectedState = states.find((c) => c.name === value);
-      tempValue = selectedState?.name
-      const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
-      setCities(stateCities);
-      setFormData((prevData) => ({ ...prevData, city: "" }));
-    }
+  tempValue = tempValue === "" ? value : tempValue;
 
-    tempValue = tempValue == "" ? value : tempValue;
+  setFormData((prevData) => ({
+    ...prevData,
+    [name]: tempValue,
+  }));
+};
 
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: tempValue,
-    }));
-  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
