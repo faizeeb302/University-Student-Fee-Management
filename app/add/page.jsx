@@ -236,17 +236,10 @@ const AddStudent = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const updatedFormData = {
-            ...formData,
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-          };
-          delete updatedFormData.firstName;
-          delete updatedFormData.lastName;
-
           const response = await fetch("/api/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedFormData),
+            body: JSON.stringify(formData), // no changes to keys
           });
 
           if (!response.ok) throw new Error("Failed to save student data");
@@ -283,6 +276,7 @@ const AddStudent = () => {
           Swal.fire("Error!", error.message, "error");
         }
       }
+
     });
   };
 
