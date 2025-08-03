@@ -71,49 +71,49 @@ const AddStudent = () => {
     return text == "fatherName" ? "Father's Name" : label.charAt(0).toUpperCase() + label.slice(1);
   };
 
- const handleChange = (e) => {
-  let { name, value } = e.target;
-  let tempValue = "";
+  const handleChange = (e) => {
+    let { name, value } = e.target;
+    let tempValue = "";
 
-  // Ensure phone and emergencyContact accept only digits
-  if (name === "phoneNumber" || name === "emergencyContact") {
-    value = value.replace(/\D/g, ""); // Remove non-digit characters
-  }
-
-  if (name === "rollNumber") {
-    const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-    if (value && !rollRegex.test(value)) {
-      setRollNumberError("Roll number must be in format: 21-BSCS-38");
-    } else {
-      setRollNumberError("");
+    // Ensure phone and emergencyContact accept only digits
+    if (name === "phoneNumber" || name === "emergencyContact") {
+      value = value.replace(/\D/g, ""); // Remove non-digit characters
     }
-  }
 
-  if (name === "country") {
-    const selectedCountry = countries.find((c) => c.name === value);
-    tempValue = selectedCountry?.name;
-    const countryStates = State.getStatesOfCountry(selectedCountry?.isoCode);
-    setStates(countryStates);
-    setCities([]);
-    setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
-  }
+    if (name === "rollNumber") {
+      const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+      if (value && !rollRegex.test(value)) {
+        setRollNumberError("Roll number must be in format: 21-BSCS-38");
+      } else {
+        setRollNumberError("");
+      }
+    }
 
-  if (name === "state") {
-    const selectedCountry = countries.find((c) => c.name === formData.country);
-    const selectedState = states.find((c) => c.name === value);
-    tempValue = selectedState?.name;
-    const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
-    setCities(stateCities);
-    setFormData((prevData) => ({ ...prevData, city: "" }));
-  }
+    if (name === "country") {
+      const selectedCountry = countries.find((c) => c.name === value);
+      tempValue = selectedCountry?.name;
+      const countryStates = State.getStatesOfCountry(selectedCountry?.isoCode);
+      setStates(countryStates);
+      setCities([]);
+      setFormData((prevData) => ({ ...prevData, state: "", city: "" }));
+    }
 
-  tempValue = tempValue === "" ? value : tempValue;
+    if (name === "state") {
+      const selectedCountry = countries.find((c) => c.name === formData.country);
+      const selectedState = states.find((c) => c.name === value);
+      tempValue = selectedState?.name;
+      const stateCities = City.getCitiesOfState(selectedCountry?.isoCode, selectedState?.isoCode);
+      setCities(stateCities);
+      setFormData((prevData) => ({ ...prevData, city: "" }));
+    }
 
-  setFormData((prevData) => ({
-    ...prevData,
-    [name]: tempValue,
-  }));
-};
+    tempValue = tempValue === "" ? value : tempValue;
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: tempValue,
+    }));
+  };
 
 
   const handleImageChange = (e) => {
@@ -135,7 +135,7 @@ const AddStudent = () => {
   };
 
   const validateFields = () => {
-    const phoneRegex = /^\d{10,15}$/;
+    const phoneRegex = /^\d{11}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
     const nameRegex = /^[a-zA-Z\s]+$/;
@@ -375,7 +375,7 @@ const AddStudent = () => {
             <div style={styles.inputGroup}>
               <label style={styles.label}>Country</label>
               <ClientOnlySelect
-              instanceId="country-select"
+                instanceId="country-select"
                 options={countryOptions}
                 isSearchable
                 value={countryOptions.find((c) => c.value === formData.country) || null}
