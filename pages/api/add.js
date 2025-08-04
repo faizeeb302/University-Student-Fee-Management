@@ -1,44 +1,96 @@
-import fs from "fs";
-import path from "path";
+import db from '../../lib/db';
 
-export default function handler(req, res) {
-  if (req.method === "POST") {
-    const newStudent = req.body;
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
-    // console.log("Received student data:", newStudent); // Log the received data
+  try {
+    const {
+      rollNumber,
+      firstName,
+      lastName,
+      fatherName,
+      department,
+      degreeType,
+      year,
+      dateOfAdmission,
+      email,
+      phoneNumber,
+      emergencyContact,
+      gender,
+      dateOfBirth,
+      image,
+      street,
+      city,
+      district,
+      state,
+      country,
+      residenceType,
+    } = req.body;
 
-    const filePath = path.join(process.cwd(), "data", "students.json");
-
-    // Ensure the "data" folder exists
-    const dataDir = path.dirname(filePath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+    // Basic required field validation
+    if (
+      !rollNumber || !firstName || !lastName || !fatherName || !dateOfBirth ||
+      !gender || !department || !degreeType || !year
+    ) {
+      return res.status(400).json({ message: 'Missing required student fields' });
     }
 
-    // Check if the file exists
-    if (!fs.existsSync(filePath)) {
-      // Create the file with the new student as the first entry
-      fs.writeFileSync(filePath, JSON.stringify([newStudent], null, 2));
-      res.status(200).json({ message: "Student saved successfully!" });
-    } else {
-      // File exists, check its contents
-      let students = [];
-      const fileData = fs.readFileSync(filePath, "utf8");
+    const query = `
+      INSERT INTO student_info (
+        roll_number,
+        first_name,
+        last_name,
+        father_name,
+        date_of_birth,
+        gender,
+        image,
+        department,
+        year,
+        date_of_admission,
+        degree_type,
+        email,
+        phone_number,
+        emergency_contact_number,
+        country,
+        state,
+        city,
+        residence_type,
+        district,
+        street
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-      if (fileData.trim()) {
-        // File is not empty, parse its contents
-        students = JSON.parse(fileData);
-      }
+    const values = [
+      rollNumber,
+      firstName,
+      lastName,
+      fatherName,
+      dateOfBirth,
+      gender,
+      image,
+      department,
+      year,
+      dateOfAdmission,
+      degreeType,
+      email,
+      phoneNumber,
+      emergencyContact,
+      country,
+      state,
+      city,
+      residenceType,
+      district,
+      street
+    ];
 
-      // Add the new student
-      students.push(newStudent);
+    const [result] = await db.execute(query, values);
 
-      // Save the updated data
-      fs.writeFileSync(filePath, JSON.stringify(students, null, 2));
-
-      res.status(200).json({ message: "Student saved successfully!" });
-    }
-  } else {
-    res.status(405).json({ message: "Method not allowed" });
+    res.status(200).json({ message: 'Student inserted successfully', studentId: result.insertId });
+  } catch (error) {
+    console.error('Error inserting student:', error);
+    res.status(500).json({ message: 'Database error', error: error.message });
   }
 }
+
