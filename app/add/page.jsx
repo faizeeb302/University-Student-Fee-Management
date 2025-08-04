@@ -2,10 +2,8 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
-import { Country, State, City } from 'country-state-city';
-import Select from "react-select";
-import ClientOnlySelect from '../../components/CustomSelect/clientOnlySelect';
-
+import { Country, State, City } from "country-state-city";
+import ClientOnlySelect from "../../components/CustomSelect/clientOnlySelect";
 
 const AddStudent = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +12,8 @@ const AddStudent = () => {
     lastName: "",
     fatherName: "",
     department: "",
-    year: "1st", // Default to 1st year
+    degreeType: "", // <-- New field
+    year: "1st",
     dateOfAdmission: "",
     email: "",
     phoneNumber: "",
@@ -28,7 +27,7 @@ const AddStudent = () => {
     state: "",
     country: "",
     residenceType: "",
-    isSuspended: false
+    isSuspended: false,
   });
 
   const [rollNumberError, setRollNumberError] = useState("");
@@ -37,6 +36,7 @@ const AddStudent = () => {
   const [cities, setCities] = useState([]);
 
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
+  const degreeTypes = ["BS", "BE"];
   const genders = ["Male", "Female", "Other"];
   const years = ["1st", "2nd", "3rd", "4th"];
   const residenceOptions = ["Urban", "Rural"];
@@ -58,8 +58,6 @@ const AddStudent = () => {
     label: r,
   }));
 
-
-
   const cityOptions = cities.map((city) => ({
     value: city.name,
     label: city.name,
@@ -75,9 +73,8 @@ const AddStudent = () => {
     let { name, value } = e.target;
     let tempValue = "";
 
-    // Ensure phone and emergencyContact accept only digits
     if (name === "phoneNumber" || name === "emergencyContact") {
-      value = value.replace(/\D/g, ""); // Remove non-digit characters
+      value = value.replace(/\D/g, "");
     }
 
     if (name === "rollNumber") {
@@ -114,7 +111,6 @@ const AddStudent = () => {
       [name]: tempValue,
     }));
   };
-
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -184,6 +180,7 @@ const AddStudent = () => {
       Swal.fire("Incomplete Address", "Please select country, state, and city.", "warning");
       return false;
     }
+
     if (!formData.residenceType) {
       Swal.fire("Missing Information", "Please select whether the student resides in an Urban or Rural area.", "warning");
       return false;
@@ -212,6 +209,7 @@ const AddStudent = () => {
             <div style="margin-bottom: 30px;">
               <h3 style="font-weight: bold; border-bottom: 2px solid #ccc; padding-bottom: 10px;">University Information</h3>
               <p><strong>Department:</strong> ${formData.department}</p>
+              <p><strong>Degree:</strong> ${formData.degreeType}</p>
               <p><strong>Year:</strong> ${formData.year} Year</p>
               <p><strong>Date of Admission:</strong> ${formData.dateOfAdmission}</p>
             </div>
@@ -239,7 +237,7 @@ const AddStudent = () => {
           const response = await fetch("/api/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData), // no changes to keys
+            body: JSON.stringify(formData),
           });
 
           if (!response.ok) throw new Error("Failed to save student data");
@@ -253,6 +251,7 @@ const AddStudent = () => {
             lastName: "",
             fatherName: "",
             department: "",
+            degreeType: "", // <-- Reset here too
             year: "1st",
             dateOfAdmission: "",
             email: "",
@@ -267,7 +266,7 @@ const AddStudent = () => {
             state: "",
             country: "",
             residenceType: "",
-            isSuspended: false
+            isSuspended: false,
           });
 
           const fileInput = document.getElementById("image");
@@ -276,7 +275,6 @@ const AddStudent = () => {
           Swal.fire("Error!", error.message, "error");
         }
       }
-
     });
   };
 
@@ -323,33 +321,65 @@ const AddStudent = () => {
             </select>
           </div>
         </div>
-
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>University Information</h2>
           <div style={styles.row}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Department</label>
-              <select name="department" value={formData.department} onChange={handleChange} required style={styles.input}>
-                <option value="">Select Department</option>
-                {departments.map((dep, i) => (
-                  <option key={i} value={dep}>{dep}</option>
-                ))}
-              </select>
+              <ClientOnlySelect
+                options={departments.map((d) => ({ label: d, value: d }))}
+                value={formData.department ? { label: formData.department, value: formData.department } : null}
+                onChange={(selected) =>
+                  setFormData((prev) => ({ ...prev, department: selected?.value || "" }))
+                }
+                placeholder="Select Department"
+                isSearchable
+                styles={{ control: (base) => ({ ...base, minHeight: "42px" }) }}
+              />
             </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Degree Type</label>
+              <ClientOnlySelect
+                options={degreeTypes.map((d) => ({ label: d, value: d }))}
+                value={formData.degreeType ? { label: formData.degreeType, value: formData.degreeType } : null}
+                onChange={(selected) =>
+                  setFormData((prev) => ({ ...prev, degreeType: selected?.value || "" }))
+                }
+                placeholder="Select Degree"
+                isSearchable
+                styles={{ control: (base) => ({ ...base, minHeight: "42px" }) }}
+              />
+            </div>
+
             <div style={styles.inputGroup}>
               <label style={styles.label}>Year</label>
-              <select name="year" value={formData.year} onChange={handleChange} required style={styles.input}>
-                {years.map((yr, i) => (
-                  <option key={i} value={yr}>{yr} Year</option>
-                ))}
-              </select>
+              <ClientOnlySelect
+                options={years.map((y) => ({ label: `${y} Year`, value: y }))}
+                value={formData.year ? { label: `${formData.year} Year`, value: formData.year } : null}
+                onChange={(selected) =>
+                  setFormData((prev) => ({ ...prev, year: selected?.value || "" }))
+                }
+                placeholder="Select Year"
+                isSearchable
+                styles={{ control: (base) => ({ ...base, minHeight: "42px" }) }}
+              />
             </div>
+
             <div style={styles.inputGroup}>
               <label style={styles.label}>Date of Admission</label>
-              <input type="date" name="dateOfAdmission" value={formData.dateOfAdmission} onChange={handleChange} required style={styles.input} />
+              <input
+                type="date"
+                name="dateOfAdmission"
+                value={formData.dateOfAdmission}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
             </div>
           </div>
         </div>
+
 
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Contact Information</h2>
