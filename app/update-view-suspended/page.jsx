@@ -164,19 +164,21 @@ const ViewList = () => {
     });
   };
 
-  const showStudentDetails = (student) => {
-    const suspensions = student.suspensions || [];
+ const showStudentDetails = async (student) => {
+  try {
+    const res = await fetch(`/api/suspension-data?rollNumber=${encodeURIComponent(student.rollNumber)}`);
+    const suspensions = await res.json();
 
     Swal.fire({
       title: `<strong>Suspension History</strong>`,
       html: `
         <div style="text-align: left;">
-          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Name:</strong> ${student.firstName}</p>
           <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
           <p><strong>Department:</strong> ${student.department}</p>
           <hr />
           ${
-            suspensions.length > 0
+            Array.isArray(suspensions) && suspensions.length > 0
               ? `
               <table style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -206,9 +208,14 @@ const ViewList = () => {
       `,
       showCloseButton: true,
       confirmButtonText: "Close",
-      width: 600,
+      width: 700,
     });
-  };
+  } catch (error) {
+    console.error("Failed to fetch suspension history:", error);
+    Swal.fire("Error", "Could not load suspension history.", "error");
+  }
+};
+
 
   return (
     <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
