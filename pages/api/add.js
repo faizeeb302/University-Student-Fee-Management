@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       district,
       state,
       country,
-      residenceType,
+      residenceType
     } = req.body;
 
     // Basic required field validation
@@ -39,24 +39,24 @@ export default async function handler(req, res) {
 
     const query = `
       INSERT INTO student_info (
-        roll_number,
-        first_name,
-        last_name,
-        father_name,
-        date_of_birth,
+        rollNumber,
+        firstName,
+        lastName,
+        fatherName,
+        dateOfBirth,
         gender,
         image,
         department,
         year,
-        date_of_admission,
-        degree_type,
+        dateOfAdmission,
+        degreeType,
         email,
-        phone_number,
-        emergency_contact_number,
+        phoneNumber,
+        emergencyContact,
         country,
         state,
         city,
-        residence_type,
+        residenceType,
         district,
         street
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -93,4 +93,3 @@ export default async function handler(req, res) {
     res.status(500).json({ message: 'Database error', error: error.message });
   }
 }
-

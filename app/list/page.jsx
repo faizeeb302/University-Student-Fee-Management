@@ -19,8 +19,9 @@ const ViewList = () => {
       try {
         const response = await fetch("/api/get-students");
         const data = await response.json();
+        console.log("data",data)
         setStudents(data);
-        const filtered = data.filter((s) => s.year === "1st");
+        const filtered = data?.filter((s) => s.year === "1st");
         setFilteredStudents(filtered);
       } catch (error) {
         console.error("Error fetching students:", error);
