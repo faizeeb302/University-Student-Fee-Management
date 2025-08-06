@@ -55,80 +55,103 @@ const FeeSubmission = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    const { rollNumber, semester, challanId, amount, submissionDate, challanImageUrl } = feeData;
+ const handleSubmit = async () => {
+  const { rollNumber, semester, challanId, amount, submissionDate, challanImageUrl } = feeData;
 
-    const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-    if (!rollNumber || !semester || !challanId || !amount || !submissionDate || !feeData.challanImage) {
-      Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
-      return;
-    }
+  const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+  if (!rollNumber || !semester || !challanId || !amount || !submissionDate || !feeData.challanImage) {
+    Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
+    return;
+  }
 
-    if (!rollRegex.test(rollNumber)) {
-      Swal.fire("Invalid Roll Number", "Roll number must be in format: 21-BSCS-38", "error");
-      return;
-    }
+  if (!rollRegex.test(rollNumber)) {
+    Swal.fire("Invalid Roll Number", "Roll number must be in format: 21-BSCS-38", "error");
+    return;
+  }
 
-    if (isNaN(semester) || Number(semester) < 1 || Number(semester) > 8) {
-      Swal.fire("Invalid Semester", "Semester must be between 1 and 8.", "error");
-      return;
-    }
+  if (isNaN(semester) || Number(semester) < 1 || Number(semester) > 8) {
+    Swal.fire("Invalid Semester", "Semester must be between 1 and 8.", "error");
+    return;
+  }
 
-    if (isNaN(amount) || Number(amount) <= 0) {
-      Swal.fire("Invalid Amount", "Fee amount must be a positive number.", "error");
-      return;
-    }
+  if (isNaN(amount) || Number(amount) <= 0) {
+    Swal.fire("Invalid Amount", "Fee amount must be a positive number.", "error");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      // TODO: Submit data to backend API here
-
-      await Swal.fire({
-        title: "Fee Submission Summary",
-        html: `
-      <div style="text-align:left; font-size: 0.95rem">
-        <p><strong>Roll Number:</strong> ${rollNumber}</p>
-        <p><strong>Semester:</strong> ${semester}</p>
-        <p><strong>Challan ID:</strong> ${challanId}</p>
-        <p><strong>Amount:</strong> Rs. ${amount}</p>
-        <p><strong>Date:</strong> ${submissionDate}</p>
-        ${challanImageUrl
-            ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
-            : ""
+  try {
+    const result = await Swal.fire({
+      title: "Fee Submission Summary",
+      html: `
+        <div style="text-align:left; font-size: 0.95rem">
+          <p><strong>Roll Number:</strong> ${rollNumber}</p>
+          <p><strong>Semester:</strong> ${semester}</p>
+          <p><strong>Challan ID:</strong> ${challanId}</p>
+          <p><strong>Amount:</strong> Rs. ${amount}</p>
+          <p><strong>Date:</strong> ${submissionDate}</p>
+          ${
+            challanImageUrl
+              ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
+              : ""
           }
-      </div>
-    `,
-        showCancelButton: true,
-        confirmButtonText: "Confirm",
-        cancelButtonText: "Cancel",
-        reverseButtons: true,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire("Success", "Fee submitted successfully!", "success");
-        } else {
-          Swal.fire("Cancelled", "Submission was cancelled.", "info");
-        }
-      });
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
 
-      setFeeData({
-        rollNumber: "",
-        semester: "",
-        challanId: "",
-        amount: "",
-        submissionDate: "",
-        challanImage: null,
-        challanImageUrl: "",
-      });
-      setRollNumberError("");
-    } catch (error) {
-      console.error("Submission error:", error);
-      Swal.fire("Error", "Something went wrong while submitting.", "error");
+    if (!result.isConfirmed) {
+      Swal.fire("Cancelled", "Submission was cancelled.", "info");
+      return;
     }
-    finally {
-      setLoading(false);
+
+    // ✅ Submit to backend API
+    const response = await fetch("/api/fee-entry", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rollNumber,
+        semester: Number(semester),
+        challanId,
+        amount: Number(amount),
+        submissionDate,
+        challanImageUrl,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Something went wrong");
     }
-  };
+
+    Swal.fire("Success", "Fee submitted successfully!", "success");
+
+    // Reset form
+    setFeeData({
+      rollNumber: "",
+      semester: "",
+      challanId: "",
+      amount: "",
+      submissionDate: "",
+      challanImage: null,
+      challanImageUrl: "",
+    });
+    setRollNumberError("");
+  } catch (error) {
+    console.error("Submission error:", error);
+    Swal.fire("Error", error.message || "Failed to submit fee", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div style={styles.container}>

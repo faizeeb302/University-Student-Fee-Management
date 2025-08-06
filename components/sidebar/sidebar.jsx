@@ -9,13 +9,14 @@ const Sidebar = () => {
 
   const tabs = [
     { label: "Add", route: "/add" },
-    { label: "List", route: "/list" },
+    { label: "View", route: "/list" },
     { label: "Update", route: "/update" },
     // { label: "Delete Student", route: "/delete-student" },
     { label: "Update/View Suspended", route: "/update-view-suspended" },
-    { label: "Update Fees", route: "/fees" },
+    { label: "Fee Entry", route: "/fees" },
     { label: "Yearly Fee System", route: "/yearly-fee" },
     { label: "Fee Details", route: "/fee-details" },
+     { label: "View/Update Results", route: "/view-update-results" },
   ];
 
   return (
