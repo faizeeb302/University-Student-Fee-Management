@@ -12,39 +12,66 @@ const ViewList = () => {
   const [suspensionStates, setSuspensionStates] = useState({});
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/get-students");
-        const data = await response.json();
-        setStudents(data);
-        setFilteredStudents(data);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStudents();
+    fetchAllStudents();
   }, []);
 
-  useEffect(() => {
-    const filtered = searchTerm.trim()
-      ? students.filter((s) =>
-          s.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : students;
-    setFilteredStudents(filtered);
-  }, [searchTerm, students]);
+  const fetchAllStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/get-students");
+      const data = await response.json();
+      setStudents(data);
+      setFilteredStudents(data);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchStudent = async () => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) {
+      fetchAllStudents();
+      return;
+    }
+    console.log("trimmed",trimmed)
+
+    setLoading(true);
+    try {
+       const response = await fetch("/api/student", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rollNumber: trimmed
+          }),
+        });
+      const data = await response.json();
+
+      if (response.ok && data) {
+        setStudents([data]);
+        setFilteredStudents([data]);
+      } else {
+        setStudents([]);
+        setFilteredStudents([]);
+        Swal.fire("Not Found", "No student found with that roll number.", "info");
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      Swal.fire("Error", "Failed to fetch student.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleSuspension = (index) => {
     setSuspensionStates((prev) => ({
       ...prev,
       [index]: {
         show: !prev[index]?.show,
-        from: "",
-        to: "",
+        fromDate: "",
+        toDate: "",
+        reason: "",
       },
     }));
   };
@@ -60,17 +87,14 @@ const ViewList = () => {
   };
 
   const confirmSuspension = async (student, index) => {
-    const { from, to } = suspensionStates[index] || {};
+    const { fromDate, toDate, reason } = suspensionStates[index] || {};
 
-    if (!from || !to) {
-      Swal.fire("Missing Dates", "Please select both dates.", "warning");
+    if (!fromDate || !toDate || !reason.trim()) {
+      Swal.fire("Missing Fields", "Please fill all suspension details.", "warning");
       return;
     }
 
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-
-    if (fromDate > toDate) {
+    if (new Date(fromDate) > new Date(toDate)) {
       Swal.fire("Invalid Range", "`From` date must be before `To` date.", "error");
       return;
     }
@@ -78,7 +102,9 @@ const ViewList = () => {
     const confirmResult = await Swal.fire({
       title: "Confirm Suspension",
       html: `
-        Are you sure you want to suspend <strong>${student.rollNumber}</strong> from <strong>${from}</strong> to <strong>${to}</strong>?
+        Are you sure you want to suspend <strong>${student.rollNumber}</strong> 
+        from <strong>${fromDate}</strong> to <strong>${toDate}</strong> for reason:
+        <br/><em>${reason}</em>
       `,
       icon: "question",
       showCancelButton: true,
@@ -92,8 +118,9 @@ const ViewList = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             rollNumber: student.rollNumber,
-            from,
-            to,
+            fromDate,
+            toDate,
+            reason,
           }),
         });
 
@@ -101,16 +128,15 @@ const ViewList = () => {
 
         if (response.ok) {
           Swal.fire("Suspended!", `${student.rollNumber} has been suspended.`, "success");
+
           setSuspensionStates((prev) => ({
             ...prev,
-            [index]: { show: false, from: "", to: "" },
+            [index]: { show: false, fromDate: "", toDate: "", reason: "" },
           }));
 
           setStudents((prev) =>
             prev.map((s) =>
-              s.rollNumber === student.rollNumber
-                ? { ...s, isSuspended: true }
-                : s
+              s.rollNumber === student.rollNumber ? { ...s, isSuspended: true } : s
             )
           );
         } else {
@@ -138,37 +164,73 @@ const ViewList = () => {
     });
   };
 
-  const showStudentDetails = (student) => {
+ const showStudentDetails = async (student) => {
+  try {
+    const res = await fetch(`/api/suspension-data?rollNumber=${encodeURIComponent(student.rollNumber)}`);
+    const suspensions = await res.json();
+
     Swal.fire({
-      title: `<strong>Student Details</strong>`,
+      title: `<strong>Suspension History</strong>`,
       html: `
         <div style="text-align: left;">
-          <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+          <p><strong>Name:</strong> ${student.firstName}</p>
           <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
-          <p><strong>Name:</strong> ${student.name}</p>
-          <p><strong>Father's Name:</strong> ${student.fatherName}</p>
           <p><strong>Department:</strong> ${student.department}</p>
-          <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
-          <p><strong>Gender:</strong> ${student.gender}</p>
-          <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
+          <hr />
+          ${
+            Array.isArray(suspensions) && suspensions.length > 0
+              ? `
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th style="border: 1px solid #ccc; padding: 8px;">From</th>
+                    <th style="border: 1px solid #ccc; padding: 8px;">To</th>
+                    <th style="border: 1px solid #ccc; padding: 8px;">Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${suspensions
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td style="border: 1px solid #ccc; padding: 8px;">${s.fromDate}</td>
+                      <td style="border: 1px solid #ccc; padding: 8px;">${s.toDate}</td>
+                      <td style="border: 1px solid #ccc; padding: 8px;">${s.reason}</td>
+                    </tr>`
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+            `
+              : `<p>No suspension history available.</p>`
+          }
         </div>
       `,
       showCloseButton: true,
       confirmButtonText: "Close",
+      width: 700,
     });
-  };
+  } catch (error) {
+    console.error("Failed to fetch suspension history:", error);
+    Swal.fire("Error", "Could not load suspension history.", "error");
+  }
+};
+
 
   return (
     <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
       <h1 style={styles.title}>Student List</h1>
 
-      <input
-        type="text"
-        placeholder="Roll Number (e.g., 21-BSCS-38)"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={styles.searchBar}
-      />
+      <div style={styles.searchContainer}>
+        <input
+          type="text"
+          placeholder="Roll Number (e.g., 21-BSCS-38)"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={styles.searchBar}
+        />
+        <button onClick={searchStudent} style={styles.searchButton}>Search</button>
+      </div>
 
       {loading ? (
         <Spinner />
@@ -192,12 +254,6 @@ const ViewList = () => {
                   <button onClick={() => toggleSuspension(index)} style={styles.suspendButton}>
                     {suspension.show ? "Hide Suspension" : "Suspend"}
                   </button>
-
-                  {student.isSuspended && (
-                    <button onClick={() => removeSuspension(student)} style={styles.removeButton}>
-                      Remove Suspension
-                    </button>
-                  )}
                 </div>
 
                 {suspension.show && (
@@ -206,9 +262,9 @@ const ViewList = () => {
                       From:
                       <input
                         type="date"
-                        value={suspension.from}
+                        value={suspension.fromDate}
                         onChange={(e) =>
-                          handleSuspensionChange(index, "from", e.target.value)
+                          handleSuspensionChange(index, "fromDate", e.target.value)
                         }
                         style={styles.dateInput}
                       />
@@ -217,11 +273,21 @@ const ViewList = () => {
                       To:
                       <input
                         type="date"
-                        value={suspension.to}
+                        value={suspension.toDate}
                         onChange={(e) =>
-                          handleSuspensionChange(index, "to", e.target.value)
+                          handleSuspensionChange(index, "toDate", e.target.value)
                         }
                         style={styles.dateInput}
+                      />
+                    </label>
+                    <label style={{ flex: "1 1 100%" }}>
+                      Reason:
+                      <textarea
+                        value={suspension.reason}
+                        onChange={(e) => handleSuspensionChange(index, "reason", e.target.value)}
+                        style={styles.reasonInput}
+                        rows={2}
+                        placeholder="Enter reason for suspension"
                       />
                     </label>
                     <button
@@ -263,14 +329,27 @@ const styles = {
     marginBottom: "25px",
     color: "#333",
   },
- searchBar: {
-  padding: "10px",
-  marginBottom: "20px",
-  border: "1px solid #ccc",
-  borderRadius: "6px",
-  fontSize: "1rem",
-  minWidth: "260px",
-},
+  searchContainer: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "20px",
+    alignItems: "center",
+  },
+  searchBar: {
+    padding: "10px",
+    flex: "1",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    fontSize: "1rem",
+  },
+  searchButton: {
+    padding: "10px 16px",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
   card: {
     display: "flex",
     alignItems: "flex-start",
@@ -325,6 +404,14 @@ const styles = {
     marginLeft: "5px",
     borderRadius: "4px",
     border: "1px solid #ccc",
+  },
+  reasonInput: {
+    width: "100%",
+    padding: "6px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    marginTop: "5px",
+    resize: "vertical",
   },
   confirmButton: {
     backgroundColor: "#4caf50",

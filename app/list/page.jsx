@@ -8,7 +8,7 @@ import { IoWarningOutline } from "react-icons/io5";
 const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("1st");
+  const [selectedYear, setSelectedYear] = useState("1");
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rollNumberError, setRollNumberError] = useState("");
@@ -18,12 +18,28 @@ const ViewList = () => {
       setLoading(true);
       try {
         const response = await fetch("/api/get-students");
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
-        setStudents(data);
-        const filtered = data.filter((s) => s.year === "1st");
-        setFilteredStudents(filtered);
+        console.log("Fetched students:", data);
+
+        if (Array.isArray(data)) {
+          setStudents(data);
+          const filtered = data.filter((s) => s.year == 1);
+          console.log("filtered",filtered)
+          setFilteredStudents(filtered);
+        } else {
+          console.error("Unexpected response format:", data);
+          setStudents([]);
+          setFilteredStudents([]);
+        }
       } catch (error) {
         console.error("Error fetching students:", error);
+        setStudents([]);
+        setFilteredStudents([]);
       } finally {
         setLoading(false);
       }
@@ -31,6 +47,7 @@ const ViewList = () => {
 
     fetchStudents();
   }, []);
+
 
   useEffect(() => {
     const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
@@ -45,7 +62,7 @@ const ViewList = () => {
       const matchesSearch = s.rollNumber
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesYear = s.year === selectedYear;
+      const matchesYear = s.year == selectedYear;
       return matchesSearch && matchesYear;
     });
 
@@ -102,10 +119,10 @@ const ViewList = () => {
           onChange={(e) => setSelectedYear(e.target.value)}
           style={styles.dropdown}
         >
-          <option value="1st">1st Year</option>
-          <option value="2nd">2nd Year</option>
-          <option value="3rd">3rd Year</option>
-          <option value="4th">4th Year</option>
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">4th Year</option>
         </select>
       </div>
 
@@ -116,12 +133,11 @@ const ViewList = () => {
           <div key={index} style={styles.card}>
             <div style={styles.cardColumn}>
               <img
-                src={student.image || "/default-avatar.png"}
+                src={student.image ? student.image : "/default-avatar.png"}
                 alt="Student"
                 style={styles.image}
               />
             </div>
-
             <div style={styles.cardColumn}>
               <div style={styles.columnTitle}>Roll Number</div>
               <div>{student.rollNumber}</div>
