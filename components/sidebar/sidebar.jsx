@@ -14,11 +14,11 @@ const Sidebar = () => {
     { label: "View", route: "/list" },
     { label: "Update", route: "/update" },
     { label: "Update/View Suspended", route: "/update-view-suspended" },
-    { label: "Fee Entry", route: "/fees" },
-    { label: "Yearly Fee System", route: "/yearly-fee" },
-    { label: "Fee Details", route: "/fee-details" },
+    { label: "Fees Entry", route: "/fees" },
+    { label: "Yearly Fees System", route: "/yearly-fee" },
+    { label: "Fees Detail", route: "/fee-details" },
     { label: "View Results", route: "/view-results" },
-    { label: "Update Result", route: "/update-result" },
+    { label: "Update Result", route: "/update-results" },
   ];
 
   return (

@@ -8,10 +8,14 @@ import { IoWarningOutline } from "react-icons/io5";
 const ViewList = () => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState("1");
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rollNumberError, setRollNumberError] = useState("");
+  const startYear = 2000;
+const endYear = 2035;
+const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
+const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -28,7 +32,7 @@ const ViewList = () => {
 
         if (Array.isArray(data)) {
           setStudents(data);
-          const filtered = data.filter((s) => s.year == 1);
+       const filtered = data.filter((s) => s.year === new Date().getFullYear().toString());
           console.log("filtered",filtered)
           setFilteredStudents(filtered);
         } else {
@@ -114,16 +118,18 @@ const ViewList = () => {
           )}
         </div>
 
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          style={styles.dropdown}
-        >
-          <option value="1">1st Year</option>
-          <option value="2">2nd Year</option>
-          <option value="3">3rd Year</option>
-          <option value="4">4th Year</option>
-        </select>
+      <select
+  value={selectedYear}
+  onChange={(e) => setSelectedYear(e.target.value)}
+  style={styles.dropdown}
+>
+  {yearOptions.map((year) => (
+    <option key={year} value={year}>
+      {year}
+    </option>
+  ))}
+</select>
+
       </div>
 
       {loading ? (
