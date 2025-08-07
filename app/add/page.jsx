@@ -38,7 +38,7 @@ const AddStudent = () => {
   const startYear = 2000;
   const endYear = 2050;
   const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
-  const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
+  // const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const degreeTypes = ["BS", "BE"];
   const genders = ["Male", "Female", "Other"];
   const residenceOptions = ["Urban", "Rural"];
@@ -254,7 +254,7 @@ const AddStudent = () => {
             fatherName: "",
             department: "",
             degreeType: "", // <-- Reset here too
-            year: "1st",
+            year: "",
             dateOfAdmission: "",
             email: "",
             phoneNumber: "",
