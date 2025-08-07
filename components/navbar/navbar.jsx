@@ -13,16 +13,16 @@ const Navbar = () => {
 
   return (
     <nav style={styles.navbar}>
-      <h1 style={styles.logo}>Admin Dashboard</h1>
-      <button onClick={handleLogout} style={styles.logoutButton}>Logout</button>
+      <h1 style={styles.logo}>Quaid-e-Awam University of Engineering, Sciences and Technology Nawabshah</h1>
+      <button onClick={handleLogout} style={styles.logoutButton}>Sign Out</button>
     </nav>
   );
 };
 
 const styles = {
   navbar: {
-    height: "60px",
-    backgroundColor: "#007bff",
+    height: "90px",
+    backgroundColor: "#022b56ff",
     color: "#fff",
     display: "flex",
     alignItems: "center",
@@ -31,17 +31,19 @@ const styles = {
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
   },
   logo: {
-    fontSize: "20px",
-    fontWeight: "bold",
+    fontSize: "1.75rem",
+    fontWeight: "500",
   },
   logoutButton: {
-    backgroundColor: "#ff4d4d",
+    backgroundColor: "#fcfbfbff",
     color: "#fff",
     border: "none",
-    padding: "8px 12px",
-    fontSize: "14px",
+    padding: "6px 16px",
+    fontSize: "1rem",
+    fontWeight: "600",
     cursor: "pointer",
     borderRadius: "4px",
+    color: "#022b56ff"
   },
 };
 
