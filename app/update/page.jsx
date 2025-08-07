@@ -1,4 +1,3 @@
-// UpdateStudent.jsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
@@ -24,6 +23,7 @@ const UpdateStudent = () => {
   const stateOptions = states.map((s) => ({ value: s.name, label: s.name, isoCode: s.isoCode }));
   const residenceTypeOptions = residenceOptions.map((r) => ({ value: r, label: r }));
   const cityOptions = cities.map((city) => ({ value: city.name, label: city.name }));
+  const yearOptions = Array.from({ length: 51 }, (_, i) => ({ label: (2000 + i).toString(), value: (2000 + i).toString() }));
 
   const handleSearch = async () => {
     const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
@@ -33,7 +33,7 @@ const UpdateStudent = () => {
     }
     setRollNumberError("");
 
-  try {
+   try {
        const res = await fetch("/api/student", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -165,7 +165,6 @@ const UpdateStudent = () => {
               {renderInput("Last Name", "lastName")}
               {renderInput("Father's Name", "fatherName")}
               {renderInput("Date of Birth", "dateOfBirth", "date")}
-
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Gender</label>
                 <ClientOnlySelect
@@ -184,7 +183,16 @@ const UpdateStudent = () => {
             <div style={styles.row}>
               {renderInput("Department", "department")}
               {renderInput("Date of Admission", "dateOfAdmission", "date")}
-
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Year</label>
+                <ClientOnlySelect
+                  isDisabled={!isEditing}
+                  options={yearOptions}
+                  value={studentData.year ? { label: studentData.year, value: studentData.year } : null}
+                  onChange={(selected) => setStudentData((prev) => ({ ...prev, year: selected?.value || "" }))}
+                  placeholder="Select Year"
+                />
+              </div>
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Degree Type</label>
                 <ClientOnlySelect
@@ -212,7 +220,6 @@ const UpdateStudent = () => {
             <div style={styles.row}>
               {renderInput("Street", "street")}
               {renderInput("District", "district")}
-
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Country</label>
                 <ClientOnlySelect
@@ -234,7 +241,6 @@ const UpdateStudent = () => {
                   placeholder="Select Country"
                 />
               </div>
-
               <div style={styles.inputGroup}>
                 <label style={styles.label}>State</label>
                 <ClientOnlySelect
@@ -255,7 +261,6 @@ const UpdateStudent = () => {
                   placeholder="Select State"
                 />
               </div>
-
               <div style={styles.inputGroup}>
                 <label style={styles.label}>City</label>
                 <ClientOnlySelect
@@ -266,7 +271,6 @@ const UpdateStudent = () => {
                   placeholder="Select City"
                 />
               </div>
-
               <div style={styles.inputGroup}>
                 <label style={styles.label}>Residence Type</label>
                 <ClientOnlySelect
@@ -297,7 +301,6 @@ const UpdateStudent = () => {
     </div>
   );
 };
-
 
 const styles = {
   container: {
@@ -349,14 +352,14 @@ const styles = {
     color: "#444",
   },
   input: {
-    width: "100%",
+    width: "35%",
     padding: "10px",
     fontSize: "1rem",
     border: "1px solid #ccc",
     borderRadius: "5px",
   },
   button: {
-    backgroundColor: "#28a745",
+   backgroundColor: "#022b56ff",
     color: "#fff",
     padding: "12px 24px",
     fontSize: "1rem",
@@ -374,7 +377,9 @@ const styles = {
   },
   searchBox: {
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row",
+    justifyContent: "center",
+    margin: "auto 8px",
     gap: "10px",
     marginBottom: "30px",
   },
