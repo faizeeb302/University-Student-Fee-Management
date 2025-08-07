@@ -217,7 +217,7 @@ const FeeSubmission = () => {
         </div>
 
         <div style={styles.inputGroup}>
-          <label style={styles.label}>Upload Challan Image (less than 100KB)</label>
+          <label style={styles.label}>Upload Challan Image (less than 1MB)</label>
           <input
             type="file"
             accept="image/*"

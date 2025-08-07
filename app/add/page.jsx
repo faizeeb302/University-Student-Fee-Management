@@ -35,9 +35,9 @@ const AddStudent = () => {
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
 
-const startYear = 2000;
-const endYear = 2050;
-const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
+  const startYear = 2000;
+  const endYear = 2050;
+  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const degreeTypes = ["BS", "BE"];
   const genders = ["Male", "Female", "Other"];
@@ -327,20 +327,18 @@ const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYe
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>University Information</h2>
           <div style={styles.row}>
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Department</label>
-              <ClientOnlySelect
-                options={departments.map((d) => ({ label: d, value: d }))}
-                value={formData.department ? { label: formData.department, value: formData.department } : null}
-                onChange={(selected) =>
-                  setFormData((prev) => ({ ...prev, department: selected?.value || "" }))
-                }
-                placeholder="Select Department"
-                isSearchable
-                styles={{ control: (base) => ({ ...base, minHeight: "42px" }) }}
-              />
-            </div>
-
+         <div style={styles.inputGroup}>
+  <label style={styles.label}>Department</label>
+  <input
+    type="text"
+    name="department"
+    value={formData.department}
+    onChange={handleChange}
+    placeholder="Enter Department Name"
+    required
+    style={styles.input}
+  />
+</div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Degree Type</label>
               <ClientOnlySelect
