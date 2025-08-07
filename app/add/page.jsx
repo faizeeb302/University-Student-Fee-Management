@@ -13,7 +13,7 @@ const AddStudent = () => {
     fatherName: "",
     department: "",
     degreeType: "", // <-- New field
-    year: "1st",
+    year: "",
     dateOfAdmission: "",
     email: "",
     phoneNumber: "",
@@ -35,10 +35,12 @@ const AddStudent = () => {
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
 
+const startYear = 2000;
+const endYear = 2050;
+const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => (startYear + i).toString());
   const departments = ["Computer Science", "Engineering", "Business", "Arts", "Law"];
   const degreeTypes = ["BS", "BE"];
   const genders = ["Male", "Female", "Other"];
-  const years = ["1st", "2nd", "3rd", "4th"];
   const residenceOptions = ["Urban", "Rural"];
 
   const countryOptions = countries.map((c) => ({
@@ -116,9 +118,9 @@ const AddStudent = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const maxSize = 101 * 1024;
+    const maxSize = 1001 * 1024;
     if (file.size > maxSize) {
-      Swal.fire("Image Too Large", "Please upload an image smaller than 100KB.", "warning");
+      Swal.fire("Image Too Large", "Please upload an image smaller than 1MB.", "warning");
       e.target.value = "";
       return;
     }
@@ -356,8 +358,8 @@ const AddStudent = () => {
             <div style={styles.inputGroup}>
               <label style={styles.label}>Year</label>
               <ClientOnlySelect
-                options={years.map((y) => ({ label: `${y} Year`, value: y }))}
-                value={formData.year ? { label: `${formData.year} Year`, value: formData.year } : null}
+                options={years.map((y) => ({ label: y, value: y }))}
+                value={formData.year ? { label: formData.year, value: formData.year } : null}
                 onChange={(selected) =>
                   setFormData((prev) => ({ ...prev, year: selected?.value || "" }))
                 }
@@ -365,6 +367,7 @@ const AddStudent = () => {
                 isSearchable
                 styles={{ control: (base) => ({ ...base, minHeight: "42px" }) }}
               />
+
             </div>
 
             <div style={styles.inputGroup}>
@@ -528,14 +531,14 @@ const styles = {
   heading: {
     textAlign: "center",
     fontSize: "2.25rem",
-      fontWeight: "500",
+    fontWeight: "500",
     marginBottom: "20px",
     color: "#333",
   },
-   subHeading: {
+  subHeading: {
     textAlign: "center",
     fontSize: "1.5rem",
-     fontWeight: "500",
+    fontWeight: "500",
     marginBottom: "20px",
     color: "#333",
   },

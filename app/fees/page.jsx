@@ -42,8 +42,8 @@ const FeeSubmission = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 102400) {
-        Swal.fire("Image Too Large", "Challan image must be less than 100KB.", "error");
+      if (file.size > (1001 * 1024)) {
+        Swal.fire("Image Too Large", "Challan image must be less than 1MB.", "error");
         return;
       }
       const imageUrl = URL.createObjectURL(file);
