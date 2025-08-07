@@ -344,7 +344,7 @@ const styles = {
   },
   searchButton: {
     padding: "10px 16px",
-    backgroundColor: "#007bff",
+    backgroundColor: "#022b56ff",
     color: "#fff",
     border: "none",
     borderRadius: "6px",
