@@ -27,7 +27,7 @@ const Sidebar = () => {
         <Image
           src={imagePath}
           alt="University Logo"
-          width={180}
+          width={160}
           height={60}
         />
         <div style={styles.logoTextLarge}>QUEST</div>
@@ -80,7 +80,7 @@ const styles = {
   },
   logoBox: {
     width: "100%",
-    height: "260px",
+    height: "220px",
     backgroundColor: "#fff",
     borderRadius: "8px",
     border: "1px solid #ccc",
@@ -89,26 +89,25 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     padding: "10px",
-    marginBottom: "15px",
+    marginBottom: "0.5rem",
   },
   logoTextLarge: {
-    fontSize: "1.5rem",
+    fontSize: "1.25rem",
     fontWeight: "bold",
-    marginTop: "8px",
+    marginTop: "4px",
     color: "#0d1725ff",
   },
   logoTextSmall: {
-    fontSize: "0.8",
+    fontSize: "0.8rem",
     color: "#666",
     marginTop: "2px",
   },
   title: {
     fontSize: "1.5rem",
     fontWeight: "bold",
-    marginBottom: "10px",
     color: "#333",
     // paddingLeft: "5px",
-    margin: "1rem auto"
+    margin: "0.2rem auto"
   },
   tab: {
     width: "100%",
