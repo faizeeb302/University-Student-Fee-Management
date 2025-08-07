@@ -16,7 +16,8 @@ const Sidebar = () => {
     { label: "Fee Entry", route: "/fees" },
     { label: "Yearly Fee System", route: "/yearly-fee" },
     { label: "Fee Details", route: "/fee-details" },
-     { label: "View/Update Results", route: "/view-update-results" },
+     { label: "View Results", route: "/view-results" },
+        { label: "Update Result", route: "/update-result" },
   ];
 
   return (
@@ -32,12 +33,12 @@ const Sidebar = () => {
               style={{
                 ...styles.tab,
                 backgroundColor: isActive
-                  ? "#cfe2ff"
+                  ? "#ecfab5"
                   : isHovered
-                  ? "#f0f4ff"
+                  ? "#e8efc8ff"
                   : "#fff",
                 fontWeight: isActive ? "600" : "normal",
-                color: isActive ? "#084298" : "#333",
+                color: isActive ? "#0d1725ff" : "#333",
               }}
               onMouseEnter={() => setHoveredTab(tab.route)}
               onMouseLeave={() => setHoveredTab(null)}
@@ -55,7 +56,7 @@ const styles = {
   sidebar: {
     width: "220px",
     height: "100vh",
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#e7e8e9ff",
     borderRight: "1px solid #ddd",
     padding: "20px 10px",
     boxSizing: "border-box",

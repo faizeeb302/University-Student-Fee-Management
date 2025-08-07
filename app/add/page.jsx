@@ -281,6 +281,7 @@ const AddStudent = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.heading}>Add Student</h1>
+      <h3 style={styles.subHeading}>Quaid-e-Awam University of Engineering, Science and Technology</h3>
       <form onSubmit={handleSave} style={styles.form}>
         <div style={styles.section}>
           <h2 style={styles.sectionHeading}>Personal Information</h2>
@@ -526,7 +527,15 @@ const styles = {
   },
   heading: {
     textAlign: "center",
-    fontSize: "2rem",
+    fontSize: "2.25rem",
+      fontWeight: "500",
+    marginBottom: "20px",
+    color: "#333",
+  },
+   subHeading: {
+    textAlign: "center",
+    fontSize: "1.5rem",
+     fontWeight: "500",
     marginBottom: "20px",
     color: "#333",
   },
