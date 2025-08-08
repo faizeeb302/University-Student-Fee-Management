@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
@@ -18,8 +18,14 @@ const ViewResult = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateRoll(roll)) {
       Swal.fire("Invalid Roll Number", "Roll number must be in format: 21-BSCS-38", "warning");
+      return;
+    }
+
+    if (!semester) {
+      Swal.fire("Missing Semester", "Please select a semester.", "warning");
       return;
     }
 
@@ -28,25 +34,60 @@ const ViewResult = () => {
     setStudentData(null);
 
     try {
-      const response = await fetch(
-        `https://your-api-url.com/api/results?roll=${roll}&semester=${semester}`
-      );
+      // Fetch student info
+      const studentRes = await fetch("/api/student", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rollNumber: roll
+          }),
+        });
+      if (!studentRes.ok) throw new Error("Student not found");
 
-      if (!response.ok) throw new Error("Failed to fetch results");
+      const student = await studentRes.json();
 
-      const data = await response.json();
-      const { student, subjects } = data;
+      // Fetch subject results
+      const resultRes = await fetch(`/api/get-results?rollNumber=${roll}&semester=${semester}`);
+      if (!resultRes.ok) throw new Error("Results not found");
 
-      if (!student || !subjects) {
-        setError("Incomplete data received.");
+      const resultData = await resultRes.json();
+
+      if (!resultData.results || resultData.results.length === 0) {
+        setError("No results found.");
         return;
       }
 
-      setStudentData({ ...student, subjects });
+      setStudentData({
+        name: `${student.firstName} ${student.lastName}`,
+        roll: student.rollNumber,
+        className: `Semester ${semester}`,
+        subjects: resultData.results.map((r) => ({
+          subject: r.subjectName,
+          status: r.status,
+        })),
+      });
     } catch (err) {
+      console.error(err);
       setError("Result not found or API error.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBack = async () => {
+    const confirm = await Swal.fire({
+      title: "Go Back?",
+      text: "Do you want to check another result?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+    });
+
+    if (confirm.isConfirmed) {
+      setStudentData(null);
+      setRoll("");
+      setSemester("");
     }
   };
 
@@ -63,19 +104,14 @@ const ViewResult = () => {
             QUEST Result Management System
           </h2>
 
-          <label className="block mb-2 font-semibold">Enter your Roll Id</label>
+          <label className="block mb-2 font-semibold">Enter your Roll Number</label>
           <input
             type="text"
             value={roll}
             onChange={(e) => {
               const value = e.target.value;
               setRoll(value);
-
-              if (value && !validateRoll(value)) {
-                setRollNumberError("Roll number must be in format: 21-BSCS-38");
-              } else {
-                setRollNumberError("");
-              }
+              setRollNumberError(validateRoll(value) ? "" : "Roll number must be in format: 21-BSCS-38");
             }}
             className="w-full mb-1 p-2 border border-gray-300 rounded"
             placeholder="Enter Roll Number"
@@ -99,7 +135,7 @@ const ViewResult = () => {
           >
             <option value="">Select Semester</option>
             {[...Array(8)].map((_, idx) => (
-              <option key={idx} value={`Semester${idx + 1}`}>
+              <option key={idx} value={idx + 1}>
                 Semester {idx + 1}
               </option>
             ))}
@@ -132,7 +168,6 @@ const ViewResult = () => {
               <tr className="bg-gray-100">
                 <th className="border p-2">#</th>
                 <th className="border p-2">Subject</th>
-                <th className="border p-2">Marks</th>
                 <th className="border p-2">Status</th>
               </tr>
             </thead>
@@ -141,7 +176,6 @@ const ViewResult = () => {
                 <tr key={index}>
                   <td className="border p-2 text-center">{index + 1}</td>
                   <td className="border p-2">{s.subject}</td>
-                  <td className="border p-2 text-center">{s.marks}</td>
                   <td
                     className={`border p-2 font-semibold text-center ${
                       s.status === "Fail" ? "text-red-600" : "text-green-600"
@@ -153,6 +187,13 @@ const ViewResult = () => {
               ))}
             </tbody>
           </table>
+
+          <button
+            onClick={handleBack}
+            className="mt-6 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded"
+          >
+            Back
+          </button>
         </div>
       )}
     </div>
