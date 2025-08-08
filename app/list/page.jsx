@@ -80,7 +80,7 @@ const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toStri
         <div style="text-align: left;">
           <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
           <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
-          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Name:</strong> ${student.firstName} ${student.lastName}</p>
           <p><strong>Father's Name:</strong> ${student.fatherName}</p>
           <p><strong>Department:</strong> ${student.department}</p>
           <p><strong>Year:</strong> ${student.year}</p>
