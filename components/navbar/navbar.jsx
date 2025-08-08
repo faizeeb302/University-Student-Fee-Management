@@ -13,7 +13,9 @@ const Navbar = () => {
 
   return (
     <nav style={styles.navbar}>
+      <div style={styles.logoContainer}>
       <h1 style={styles.logo}>Quaid-e-Awam University of Engineering, Sciences and Technology Nawabshah</h1>
+      </div>
       <button onClick={handleLogout} style={styles.logoutButton}>Sign Out</button>
     </nav>
   );
@@ -29,6 +31,11 @@ const styles = {
     justifyContent: "space-between", // Added to align items properly
     padding: "0 20px",
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+  },
+  logoContainer: {
+display: "flex",
+    width: "90%",
+    justifyContent: "center",
   },
   logo: {
     fontSize: "1.75rem",

@@ -337,7 +337,7 @@ const styles = {
   },
   row: {
     display: "flex",
-    gap: "20px",
+    gap: "10px",
     flexWrap: "wrap",
   },
   inputGroup: {
@@ -352,7 +352,7 @@ const styles = {
     color: "#444",
   },
   input: {
-    width: "35%",
+    width: "70%",
     padding: "10px",
     fontSize: "1rem",
     border: "1px solid #ccc",

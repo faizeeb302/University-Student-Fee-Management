@@ -19,8 +19,10 @@ const Login = () => {
   };
 
   return (
+    <div style={styles.mainContainer}>
+    <h1 style={styles.logo}>Quaid-e-Awam University of Engineering, Sciences and Technology Nawabshah</h1>
     <div style={styles.container}>
-      <h1>Admin Login</h1>
+      <h2>Admin Login</h2>
       <form onSubmit={handleLogin} style={styles.form}>
         <input
           type="text"
@@ -41,13 +43,19 @@ const Login = () => {
         </button>
       </form>
     </div>
+    </div>
   );
 };
 
 const styles = {
+  mainContainer : {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center"
+  },
   container: {
-    maxWidth: "400px",
-    margin: "100px auto",
+    width: "30%",
+    margin: "50px auto",
     padding: "20px",
     border: "1px solid #ddd",
     borderRadius: "8px",
@@ -71,6 +79,11 @@ const styles = {
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
+  },
+    logo: {
+    fontSize: "1.75rem",
+    fontWeight: "500",
+    margin: "1rem auto"
   },
 };
 

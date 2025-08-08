@@ -36,22 +36,57 @@ const FeeDetails = () => {
 //   };
 
 const fetchFeeDetails = async () => {
+  if (!rollNumber.trim()) {
+    Swal.fire("Missing Roll Number", "Please enter a valid roll number.", "warning");
+    return;
+  }
+
   setLoading(true);
-  setTimeout(() => {
-    setFeeDetails([
-      { semester: "1", paid: true, amount: 15000, date: "2023-08-12", challanId: "CH001" },
-      { semester: "2", paid: true, amount: 15000, date: "2024-01-10", challanId: "CH002" },
-      { semester: "3", paid: true, amount: 16000, date: "2024-07-01", challanId: "CH003" },
-      { semester: "4", paid: false },
-      { semester: "5", paid: false },
-      { semester: "6", paid: false },
-      { semester: "7", paid: false },
-      { semester: "8", paid: false },
-    ]);
-    setStudentName("Amit Kumar");
+  setFeeDetails([]);
+  setStudentName(null);
+
+  try {
+    const response = await fetch(`/api/get-fee?rollNumber=${rollNumber}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      Swal.fire("Error", data.message || "Failed to fetch fee data.");
+      return;
+    }
+
+    // All semesters (1 to 8)
+    const semesters = Array.from({ length: 8 }, (_, i) => i + 1);
+
+    // Map semesters to fee records (if found)
+    const mappedFees = semesters.map((sem) => {
+      const feeRecord = data.fees.find((f) => Number(f.semester) === sem);
+
+      if (feeRecord) {
+        return {
+          semester: sem,
+          paid: true,
+          amount: feeRecord.amount,
+          date: feeRecord.submissionDate,
+          challanId: feeRecord.challanId,
+        };
+      } else {
+        return {
+          semester: sem,
+          paid: false,
+        };
+      }
+    });
+
+    setFeeDetails(mappedFees);
+    setStudentName(rollNumber); // or fetch from another API if needed
+  } catch (error) {
+    console.error("Error fetching fee details:", error);
+    Swal.fire("Error", "Failed to fetch fee data. Please try again later.", "error");
+  } finally {
     setLoading(false);
-  }, 1000); // simulate network delay
+  }
 };
+
 
   return (
     <div style={styles.container}>
@@ -72,7 +107,7 @@ const fetchFeeDetails = async () => {
         <Spinner />
       ) : feeDetails.length > 0 ? (
         <div>
-          <h3 style={styles.studentName}>Student: <span style={{ color: '#007bff' }}>{studentName}</span></h3>
+          <h3 style={styles.studentName}>Roll Number: <span style={{ color: '#007bff' }}>{studentName}</span></h3>
           <div style={styles.tableContainer}>
             <table style={styles.table}>
               <thead>
