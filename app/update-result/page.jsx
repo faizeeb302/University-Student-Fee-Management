@@ -55,6 +55,7 @@ const UpdateResult = () => {
   };
 
  const handleSave = async () => {
+  console.log("semester, rollNumber, results.length",semester, rollNumber, results.length)
   if (!semester || !rollNumber || results.length === 0) {
     Swal.fire("Missing Information", "Semester, roll number, and at least one subject are required.", "warning");
     return;
@@ -78,24 +79,39 @@ const UpdateResult = () => {
   if (!confirm.isConfirmed) return;
 
   try {
-    const response = await fetch("/api/updateResult", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ semester, rollNumber, results }),
-    });
+    for (const result of results) {
+      const response = await fetch("/api/update-results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rollNumber: rollNumber,
+          semester: parseInt(semester),
+          subjectName: result.subject,
+          status: result.status,
+        }),
+      });
 
-    if (!response.ok) throw new Error("Failed to update results");
+      const data = await response.json();
 
-    await response.json();
-    Swal.fire("Success", "Student result updated successfully.", "success");
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update a subject result");
+      }
+    }
 
+    Swal.fire("Success", "All subject results updated successfully.", "success");
+
+    // Reset form
     setSemester("");
     setRollNumber("");
     setResults([]);
+    setNewResult({ subject: "", status: "" });
+    setRollNumberError("");
   } catch (error) {
+    console.error("Error updating results:", error);
     Swal.fire("Error", error.message, "error");
   }
 };
+
 
 
   return (
