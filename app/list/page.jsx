@@ -73,28 +73,35 @@ const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toStri
     setFilteredStudents(filtered);
   }, [searchTerm, selectedYear, students]);
 
-  const showStudentDetails = (student) => {
-    Swal.fire({
-      title: `<strong>Student Details</strong>`,
-      html: `
-        <div style="text-align: left;">
-          <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
-          <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
-          <p><strong>Name:</strong> ${student.firstName} ${student.lastName}</p>
-          <p><strong>Father's Name:</strong> ${student.fatherName}</p>
-          <p><strong>Department:</strong> ${student.department}</p>
-          <p><strong>Year:</strong> ${student.year}</p>
-          <p><strong>Date of Admission:</strong> ${student.dateOfAdmission}</p>
-          <p><strong>Gender:</strong> ${student.gender}</p>
-          <p><strong>Date of Birth:</strong> ${student.dateOfBirth}</p>
-          <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
-          <p><strong>Remaining Fee:</strong> Rs. ${student.remainingFee != null ? student.remainingFee : "0"}</p>
-        </div>
-      `,
-      showCloseButton: true,
-      confirmButtonText: "Close",
-    });
+ const showStudentDetails = (student) => {
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(); // Only the date part
   };
+
+  Swal.fire({
+    title: `<strong>Student Details</strong>`,
+    html: `
+      <div style="text-align: left;">
+        <img src="${student.image || '/default-avatar.png'}" alt="Student" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px;" />
+        <p><strong>Roll Number:</strong> ${student.rollNumber}</p>
+        <p><strong>Name:</strong> ${student.firstName} ${student.lastName}</p>
+        <p><strong>Father's Name:</strong> ${student.fatherName}</p>
+        <p><strong>Department:</strong> ${student.department}</p>
+        <p><strong>Year:</strong> ${student.year}</p>
+        <p><strong>Date of Admission:</strong> ${formatDate(student.dateOfAdmission)}</p>
+        <p><strong>Gender:</strong> ${student.gender}</p>
+        <p><strong>Date of Birth:</strong> ${formatDate(student.dateOfBirth)}</p>
+        <p><strong>Suspended:</strong> ${student.isSuspended ? "Yes" : "No"}</p>
+        <p><strong>Remaining Fee:</strong> Rs. ${student.remainingFee != null ? student.remainingFee : "0"}</p>
+      </div>
+    `,
+    showCloseButton: true,
+    confirmButtonText: "Close",
+  });
+};
+
 
   return (
     <div style={styles.container}>
