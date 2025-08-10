@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import ClientOnlySelect from "../../components/CustomSelect/clientOnlySelect"; // adjust path if needed
- import Swal from "sweetalert2";
+import ClientOnlySelect from "../../components/CustomSelect/clientOnlySelect";
+import Swal from "sweetalert2";
 
 const YearlyFee = () => {
   const startYear = 2000;
@@ -11,22 +11,15 @@ const YearlyFee = () => {
     return { label: y, value: y };
   });
 
-  
-const semesterLabels = ["Odd Semester", "Even Semester"];
+  const semesterLabels = ["Odd Semester", "Even Semester"];
   const [year, setYear] = useState({ label: "2025", value: "2025" });
   const [fees, setFees] = useState(
-    semesterLabels.map(() => ({ fee: "", dueDate: "", isEditing: false }))
+    semesterLabels.map(() => ({ dueDate: "", isEditing: false }))
   );
 
   const handleEditToggle = (index) => {
     const updated = [...fees];
     updated[index].isEditing = !updated[index].isEditing;
-    setFees(updated);
-  };
-
-  const handleFeeChange = (index, value) => {
-    const updated = [...fees];
-    updated[index].fee = value;
     setFees(updated);
   };
 
@@ -36,76 +29,68 @@ const semesterLabels = ["Odd Semester", "Even Semester"];
     setFees(updated);
   };
 
+  const handleConfirm = async (index) => {
+    const semesterType = index === 0 ? "Odd" : "Even";
+    const dueDate = fees[index].dueDate;
+    const selectedYear = year.value;
 
-
-const handleConfirm = async (index) => {
-  const semesterType = index === 0 ? "Odd" : "Even";
-  const feeAmount = fees[index].fee;
-  const dueDate = fees[index].dueDate;
-  const selectedYear = year.value;
-
-  if (!feeAmount || !dueDate) {
-    Swal.fire("Missing Fields", "Please enter both fee and due date.", "warning");
-    return;
-  }
-
-  const confirm = await Swal.fire({
-    title: `Confirm ${semesterType} Semester Fee`,
-    html: `
-      <div style="text-align:left">
-        <p><strong>Year:</strong> ${selectedYear}</p>
-        <p><strong>Semester Type:</strong> ${semesterType}</p>
-        <p><strong>Fee Amount:</strong> Rs. ${feeAmount}</p>
-        <p><strong>Due Date:</strong> ${dueDate}</p>
-      </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: "Confirm",
-    cancelButtonText: "Cancel",
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  try {
-    const response = await fetch("/api/yearly-fee", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        year: selectedYear,
-        semesterType,
-        feeAmount,
-        dueDate,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to save yearly fee");
+    if (!dueDate) {
+      Swal.fire("Missing Field", "Please enter the due date.", "warning");
+      return;
     }
 
-    Swal.fire("Success", `Yearly ${semesterType} semester fee saved!`, "success");
+    const confirm = await Swal.fire({
+      title: `Confirm ${semesterType} Semester Due Date`,
+      html: `
+        <div style="text-align:left">
+          <p><strong>Year:</strong> ${selectedYear}</p>
+          <p><strong>Semester Type:</strong> ${semesterType}</p>
+          <p><strong>Due Date:</strong> ${dueDate}</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+    });
 
-    const updated = [...fees];
-    updated[index].isEditing = false;
-    setFees(updated);
-  } catch (error) {
-    console.error("API Error:", error);
-    Swal.fire("Error", error.message, "error");
-  }
-};
+    if (!confirm.isConfirmed) return;
 
+    try {
+      const response = await fetch("/api/yearly-fee", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          year: selectedYear,
+          semesterType,
+          dueDate,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to save due date");
+      }
+
+      Swal.fire("Success", `${semesterType} semester due date saved!`, "success");
+
+      const updated = [...fees];
+      updated[index].isEditing = false;
+      setFees(updated);
+    } catch (error) {
+      console.error("API Error:", error);
+      Swal.fire("Error", error.message, "error");
+    }
+  };
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Yearly Fee Setup</h2>
+      <h2 style={styles.heading}>Semester Due Date Setup</h2>
 
       <div style={styles.section}>
-        <label htmlFor="year" style={styles.label}>
-          Select Academic Year
-        </label>
+        <label htmlFor="year" style={styles.label}>Select Academic Year</label>
         <ClientOnlySelect
           options={yearOptions}
           value={year}
@@ -120,17 +105,6 @@ const handleConfirm = async (index) => {
         <div key={index} style={styles.card}>
           <div style={styles.row}>
             <div style={styles.labelText}>{label}</div>
-          </div>
-
-          <div style={styles.row}>
-            <div style={styles.labelText}>Semester Fee</div>
-            <input
-              type="number"
-              value={fees[index].fee}
-              onChange={(e) => handleFeeChange(index, e.target.value)}
-              disabled={!fees[index].isEditing}
-              style={styles.input}
-            />
           </div>
 
           <div style={styles.row}>
