@@ -8,17 +8,19 @@ export default async function handler(req, res) {
   try {
     const {
       rollNumber,
-      semester,
+      semesterType,
+      semesterYear,
       challanId,
       amount,
       submissionDate,
       challanImageUrl
     } = req.body;
 
-    // Basic validation
+    // Validate required fields
     if (
       !rollNumber ||
-      !semester ||
+      !semesterType ||
+      !semesterYear ||
       !challanId ||
       !amount ||
       !submissionDate
@@ -30,21 +32,23 @@ export default async function handler(req, res) {
     const query = `
       INSERT INTO fees (
         rollNumber,
-        semester,
+        semesterType,
+        semesterYear,
         challanId,
         amount,
         submissionDate,
         challanImageUrl
-      ) VALUES (?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
       rollNumber,
-      semester,
+      semesterType,
+      semesterYear,
       challanId,
       amount,
       submissionDate,
-      challanImageUrl || null // optional field
+      challanImageUrl || null
     ];
 
     const [result] = await db.execute(query, values);
