@@ -7,34 +7,39 @@ export default async function handler(req, res) {
       console.log("Fetching dueDate...");
 
       // Step 1: Get the latest/past dueDate
-      const dueDateTemp = await db.query(`
-        SELECT dueDate FROM yearly_fee
-        WHERE dueDate < NOW()
-        ORDER BY dueDate DESC
-        LIMIT 1
-      `);
+      // const dueDateTemp = await db.query(`
+      //   SELECT dueDate FROM yearly_fee
+      //   WHERE dueDate < NOW()
+      //   ORDER BY dueDate DESC
+      //   LIMIT 1
+      // `);
 
-      const dueDate = dueDateTemp[0][0]?.dueDate;
+      // const dueDate = dueDateTemp[0][0]?.dueDate;
 
-      if (!dueDate) {
-        return res.status(200).json({ message: 'No past due dates found in yearly_fee.' });
-      }
+      // if (!dueDate) {
+      //   return res.status(200).json({ message: 'No past due dates found in yearly_fee.' });
+      // }
 
-      console.log("Using dueDate:", dueDate);
+      // console.log("Using dueDate:", dueDate);
 
       // Step 2: Find students who haven't paid after this dueDate
-      const overdueResult = await db.query(`
-        SELECT si.email, si.rollNumber
-        FROM student_info si
-        WHERE NOT EXISTS (
-          SELECT 1
-          FROM fees f
-          WHERE f.rollNumber = si.rollNumber
-          AND f.submissionDate > ?
-        )
-      `, [dueDate]);
+      const [overdueStudents] = await db.query(
+       `
+    SELECT si.rollNumber, si.email, si.firstName, si.lastName,
+           yf.year, yf.semesterType, yf.dueDate
+    FROM StudentInfo si
+    JOIN YearlyFee yf
+    LEFT JOIN Fee f
+      ON f.rollNumber = si.rollNumber
+     AND f.year = yf.year
+     AND f.semesterType = yf.semesterType
+     AND f.submissionDate IS NOT NULL
+    WHERE yf.dueDate < CURRENT_DATE
+      AND f.id IS NULL
+    `
+  );
 
-      const overdueStudents = overdueResult[0]; // mysql2 format: [rows, fields]
+      // const overdueStudents = overdueResult[0]; // mysql2 format: [rows, fields]
 
       console.log("Overdue students:", overdueStudents);
 

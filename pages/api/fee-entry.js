@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         amount,
         submissionDate,
         challanImageUrl
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [

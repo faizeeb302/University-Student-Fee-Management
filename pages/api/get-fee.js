@@ -16,14 +16,14 @@ export default async function handler(req, res) {
       SELECT
         id,
         rollNumber,
-        semester,
+        semesterType,
+        semesterYear,
         challanId,
         amount,
         submissionDate,
         challanImageUrl
       FROM fees
       WHERE rollNumber = ?
-      ORDER BY semester ASC
     `;
 
     const [rows] = await db.execute(query, [rollNumber]);

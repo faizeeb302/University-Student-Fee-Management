@@ -32,7 +32,6 @@ const FeeSubmission = () => {
 
   const [loading, setLoading] = useState(false);
   const [rollNumberError, setRollNumberError] = useState("");
-  const printRef = useRef();
 
   const handleChange = (field, value) => {
     if (field === "rollNumber") {
@@ -123,8 +122,8 @@ const handleSubmit = async () => {
       html: `
         <div style="text-align:left; font-size: 0.95rem">
           <p><strong>Roll Number:</strong> ${rollNumber}</p>
-          <p><strong>Type:</strong> ${semesterType.value}</p>
-          <p><strong>Year:</strong> ${semesterYear.value}</p>
+          <p><strong>Semester Type:</strong> ${semesterType?.value}</p>
+          <p><strong>Semester Year:</strong> ${semesterYear?.value}</p>
           <p><strong>Challan ID:</strong> ${challanId}</p>
           <p><strong>Amount:</strong> Rs. ${amount}</p>
           <p><strong>Date:</strong> ${submissionDate}</p>
@@ -151,13 +150,13 @@ const handleSubmit = async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        rollNumber,
-        semesterType: semesterType.value,
-        semesterYear: Number(semesterYear.value),
-        challanId,
+        rollNumber:rollNumber,
+        semesterType: semesterType?.value,
+        semesterYear: Number(semesterYear?.value),
+        challanId:challanId,
         amount: Number(amount),
-        submissionDate,
-        challanImageUrl,
+        submissionDate:submissionDate,
+        challanImageUrl:challanImageUrl,
       }),
     });
 
