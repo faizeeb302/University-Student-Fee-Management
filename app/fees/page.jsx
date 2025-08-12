@@ -21,7 +21,6 @@ const FeeSubmission = () => {
 
   const [feeData, setFeeData] = useState({
     rollNumber: "",
-    semester: "",
     semesterType: null,
     semesterYear: null,
     challanId: "",
@@ -67,106 +66,128 @@ const FeeSubmission = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    const {
-      rollNumber,
-      semester,
-      semesterType,
-      semesterYear,
-      challanId,
-      amount,
-      submissionDate,
-      challanImageUrl,
-    } = feeData;
+const handleSubmit = async () => {
+  const {
+    rollNumber,
+    semesterType,
+    semesterYear,
+    challanId,
+    amount,
+    submissionDate,
+    challanImageUrl,
+  } = feeData;
 
-    if (
-      !rollNumber ||
-      !semester ||
-      !semesterType?.value ||
-      !semesterYear?.value ||
-      !challanId ||
-      !amount ||
-      !submissionDate ||
-      !feeData.challanImage
-    ) {
-      Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
+  const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
+
+  if (
+    !rollNumber ||
+    !semesterType?.value ||
+    !semesterYear?.value ||
+    !challanId ||
+    !amount ||
+    !submissionDate ||
+    !feeData.challanImage
+  ) {
+    Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
+    return;
+  }
+
+  if (!rollRegex.test(rollNumber)) {
+    Swal.fire("Invalid Roll Number", "Roll number must be in format: 21-BSCS-38", "error");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // ✅ 1. Check if student exists
+    const checkStudent = await fetch("/api/student", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rollNumber }),
+    });
+
+    if (checkStudent.status === 404) {
+      setLoading(false);
+      Swal.fire("Student Not Found", "No student found with this roll number.", "error");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const result = await Swal.fire({
-        title: "Fee Submission Summary",
-        html: `
-          <div style="text-align:left; font-size: 0.95rem">
-            <p><strong>Roll Number:</strong> ${rollNumber}</p>
-            <p><strong>Semester:</strong> ${semester}</p>
-            <p><strong>Type:</strong> ${semesterType.value}</p>
-            <p><strong>Year:</strong> ${semesterYear.value}</p>
-            <p><strong>Challan ID:</strong> ${challanId}</p>
-            <p><strong>Amount:</strong> Rs. ${amount}</p>
-            <p><strong>Date:</strong> ${submissionDate}</p>
-            ${
-              challanImageUrl
-                ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
-                : ""
-            }
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: "Confirm",
-        cancelButtonText: "Cancel",
-        reverseButtons: true,
-      });
-
-      if (!result.isConfirmed) {
-        Swal.fire("Cancelled", "Submission was cancelled.", "info");
-        return;
-      }
-
-      const response = await fetch("/api/fee-entry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rollNumber,
-          semester: Number(semester),
-          semesterType: semesterType.value,
-          semesterYear: Number(semesterYear.value),
-          challanId,
-          amount: Number(amount),
-          submissionDate,
-          challanImageUrl,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      Swal.fire("Success", "Fee submitted successfully!", "success");
-
-      setFeeData({
-        rollNumber: "",
-        semester: "",
-        semesterType: null,
-        semesterYear: null,
-        challanId: "",
-        amount: "",
-        submissionDate: "",
-        challanImage: null,
-        challanImageUrl: "",
-      });
-      setRollNumberError("");
-    } catch (error) {
-      console.error("Submission error:", error);
-      Swal.fire("Error", error.message || "Failed to submit fee", "error");
-    } finally {
-      setLoading(false);
+    if (!checkStudent.ok) {
+      throw new Error("Error verifying student");
     }
-  };
+
+    // ✅ 2. Confirm submission summary
+    const result = await Swal.fire({
+      title: "Fee Submission Summary",
+      html: `
+        <div style="text-align:left; font-size: 0.95rem">
+          <p><strong>Roll Number:</strong> ${rollNumber}</p>
+          <p><strong>Type:</strong> ${semesterType.value}</p>
+          <p><strong>Year:</strong> ${semesterYear.value}</p>
+          <p><strong>Challan ID:</strong> ${challanId}</p>
+          <p><strong>Amount:</strong> Rs. ${amount}</p>
+          <p><strong>Date:</strong> ${submissionDate}</p>
+          ${
+            challanImageUrl
+              ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
+              : ""
+          }
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Confirm",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      Swal.fire("Cancelled", "Submission was cancelled.", "info");
+      return;
+    }
+
+    // ✅ 3. Submit fee entry
+    const response = await fetch("/api/fee-entry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rollNumber,
+        semesterType: semesterType.value,
+        semesterYear: Number(semesterYear.value),
+        challanId,
+        amount: Number(amount),
+        submissionDate,
+        challanImageUrl,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Something went wrong");
+    }
+
+    Swal.fire("Success", "Fee submitted successfully!", "success");
+
+    setFeeData({
+      rollNumber: "",
+      semesterType: null,
+      semesterYear: null,
+      challanId: "",
+      amount: "",
+      submissionDate: "",
+      challanImage: null,
+      challanImageUrl: "",
+    });
+    setRollNumberError("");
+  } catch (error) {
+    console.error("Submission error:", error);
+    Swal.fire("Error", error.message || "Failed to submit fee", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div style={styles.container}>
@@ -188,19 +209,6 @@ const FeeSubmission = () => {
               <span>{rollNumberError} <span style={styles.example}>(e.g., 21-BSCS-38)</span></span>
             </div>
           )}
-        </div>
-
-        {/* Semester */}
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Semester (1–8)</label>
-          <input
-            type="number"
-            value={feeData.semester}
-            min="1"
-            max="8"
-            onChange={(e) => handleChange("semester", e.target.value)}
-            style={styles.input}
-          />
         </div>
 
         {/* Semester Type */}
