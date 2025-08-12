@@ -6,22 +6,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { year, semesterType, feeAmount, dueDate } = req.body;
+    const { year, semesterType, dueDate } = req.body;
 
-    if (!year || !semesterType || !feeAmount || !dueDate) {
+    if (!year || !semesterType || !dueDate) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Insert or update (in case of re-entry)
     const query = `
-      INSERT INTO yearly_fee (year, semesterType, feeAmount, dueDate)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO yearly_fee (year, semesterType, dueDate)
+      VALUES (?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        feeAmount = VALUES(feeAmount),
         dueDate = VALUES(dueDate)
     `;
 
-    const values = [year, semesterType, feeAmount, dueDate];
+    const values = [year, semesterType, dueDate];
 
     const [result] = await db.execute(query, values);
 

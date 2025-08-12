@@ -3,11 +3,27 @@ import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
 import Spinner from "../../components/Spinner/spinner";
+import ClientOnlySelect from "../../components/CustomSelect/clientOnlySelect";
 
 const FeeSubmission = () => {
+  const startYear = 2000;
+  const endYear = 2050;
+
+  const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => {
+    const y = (startYear + i).toString();
+    return { label: y, value: y };
+  });
+
+  const semesterTypeOptions = [
+    { label: "Fall", value: "Fall" },
+    { label: "Spring", value: "Spring" },
+  ];
+
   const [feeData, setFeeData] = useState({
     rollNumber: "",
     semester: "",
+    semesterType: null,
+    semesterYear: null,
     challanId: "",
     amount: "",
     submissionDate: "",
@@ -22,16 +38,12 @@ const FeeSubmission = () => {
   const handleChange = (field, value) => {
     if (field === "rollNumber") {
       const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-      if (value && !rollRegex.test(value)) {
-        setRollNumberError("Roll number must be in format: 21-BSCS-38");
-      } else {
-        setRollNumberError("");
-      }
+      setRollNumberError(value && !rollRegex.test(value) ? "Roll number must be in format: 21-BSCS-38" : "");
     }
 
-      if (field === "challanId") {
-    value = value.replace(/\D/g, "");
-  }
+    if (field === "challanId") {
+      value = value.replace(/\D/g, "");
+    }
 
     setFeeData((prev) => ({
       ...prev,
@@ -42,7 +54,7 @@ const FeeSubmission = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > (1001 * 1024)) {
+      if (file.size > 1024 * 1000) {
         Swal.fire("Image Too Large", "Challan image must be less than 1MB.", "error");
         return;
       }
@@ -55,109 +67,113 @@ const FeeSubmission = () => {
     }
   };
 
- const handleSubmit = async () => {
-  const { rollNumber, semester, challanId, amount, submissionDate, challanImageUrl } = feeData;
+  const handleSubmit = async () => {
+    const {
+      rollNumber,
+      semester,
+      semesterType,
+      semesterYear,
+      challanId,
+      amount,
+      submissionDate,
+      challanImageUrl,
+    } = feeData;
 
-  const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-  if (!rollNumber || !semester || !challanId || !amount || !submissionDate || !feeData.challanImage) {
-    Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
-    return;
-  }
-
-  if (!rollRegex.test(rollNumber)) {
-    Swal.fire("Invalid Roll Number", "Roll number must be in format: 21-BSCS-38", "error");
-    return;
-  }
-
-  if (isNaN(semester) || Number(semester) < 1 || Number(semester) > 8) {
-    Swal.fire("Invalid Semester", "Semester must be between 1 and 8.", "error");
-    return;
-  }
-
-  if (isNaN(amount) || Number(amount) <= 0) {
-    Swal.fire("Invalid Amount", "Fee amount must be a positive number.", "error");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const result = await Swal.fire({
-      title: "Fee Submission Summary",
-      html: `
-        <div style="text-align:left; font-size: 0.95rem">
-          <p><strong>Roll Number:</strong> ${rollNumber}</p>
-          <p><strong>Semester:</strong> ${semester}</p>
-          <p><strong>Challan ID:</strong> ${challanId}</p>
-          <p><strong>Amount:</strong> Rs. ${amount}</p>
-          <p><strong>Date:</strong> ${submissionDate}</p>
-          ${
-            challanImageUrl
-              ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
-              : ""
-          }
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: "Confirm",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) {
-      Swal.fire("Cancelled", "Submission was cancelled.", "info");
+    if (
+      !rollNumber ||
+      !semester ||
+      !semesterType?.value ||
+      !semesterYear?.value ||
+      !challanId ||
+      !amount ||
+      !submissionDate ||
+      !feeData.challanImage
+    ) {
+      Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
       return;
     }
 
-    // ✅ Submit to backend API
-    const response = await fetch("/api/fee-entry", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        rollNumber,
-        semester: Number(semester),
-        challanId,
-        amount: Number(amount),
-        submissionDate,
-        challanImageUrl,
-      }),
-    });
+    setLoading(true);
 
-    const data = await response.json();
+    try {
+      const result = await Swal.fire({
+        title: "Fee Submission Summary",
+        html: `
+          <div style="text-align:left; font-size: 0.95rem">
+            <p><strong>Roll Number:</strong> ${rollNumber}</p>
+            <p><strong>Semester:</strong> ${semester}</p>
+            <p><strong>Type:</strong> ${semesterType.value}</p>
+            <p><strong>Year:</strong> ${semesterYear.value}</p>
+            <p><strong>Challan ID:</strong> ${challanId}</p>
+            <p><strong>Amount:</strong> Rs. ${amount}</p>
+            <p><strong>Date:</strong> ${submissionDate}</p>
+            ${
+              challanImageUrl
+                ? `<img src="${challanImageUrl}" alt="Challan" style="width:120px;margin-top:10px;border-radius:6px;border:1px solid #ccc" />`
+                : ""
+            }
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Confirm",
+        cancelButtonText: "Cancel",
+        reverseButtons: true,
+      });
 
-    if (!response.ok) {
-      throw new Error(data.message || "Something went wrong");
+      if (!result.isConfirmed) {
+        Swal.fire("Cancelled", "Submission was cancelled.", "info");
+        return;
+      }
+
+      const response = await fetch("/api/fee-entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rollNumber,
+          semester: Number(semester),
+          semesterType: semesterType.value,
+          semesterYear: Number(semesterYear.value),
+          challanId,
+          amount: Number(amount),
+          submissionDate,
+          challanImageUrl,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      Swal.fire("Success", "Fee submitted successfully!", "success");
+
+      setFeeData({
+        rollNumber: "",
+        semester: "",
+        semesterType: null,
+        semesterYear: null,
+        challanId: "",
+        amount: "",
+        submissionDate: "",
+        challanImage: null,
+        challanImageUrl: "",
+      });
+      setRollNumberError("");
+    } catch (error) {
+      console.error("Submission error:", error);
+      Swal.fire("Error", error.message || "Failed to submit fee", "error");
+    } finally {
+      setLoading(false);
     }
-
-    Swal.fire("Success", "Fee submitted successfully!", "success");
-
-    // Reset form
-    setFeeData({
-      rollNumber: "",
-      semester: "",
-      challanId: "",
-      amount: "",
-      submissionDate: "",
-      challanImage: null,
-      challanImageUrl: "",
-    });
-    setRollNumberError("");
-  } catch (error) {
-    console.error("Submission error:", error);
-    Swal.fire("Error", error.message || "Failed to submit fee", "error");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.heading}>Fee Submission</h1>
 
       <div style={styles.form}>
+        {/* Roll Number */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Roll Number</label>
           <input
@@ -174,6 +190,7 @@ const FeeSubmission = () => {
           )}
         </div>
 
+        {/* Semester */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Semester (1–8)</label>
           <input
@@ -186,6 +203,29 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Semester Type */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Semester Type</label>
+          <ClientOnlySelect
+            options={semesterTypeOptions}
+            value={feeData.semesterType}
+            onChange={(selected) => handleChange("semesterType", selected)}
+            placeholder="Select Semester Type"
+          />
+        </div>
+
+        {/* Semester Year */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Semester Year</label>
+          <ClientOnlySelect
+            options={yearOptions}
+            value={feeData.semesterYear}
+            onChange={(selected) => handleChange("semesterYear", selected)}
+            placeholder="Select Year"
+          />
+        </div>
+
+        {/* Challan ID */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Challan ID</label>
           <input
@@ -196,6 +236,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Fee Amount */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Fee Amount</label>
           <input
@@ -206,6 +247,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Submission Date */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Submission Date</label>
           <input
@@ -216,6 +258,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Challan Image Upload */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Upload Challan Image (less than 1MB)</label>
           <input
@@ -226,6 +269,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Preview */}
         {feeData.challanImageUrl && (
           <img
             src={feeData.challanImageUrl}
