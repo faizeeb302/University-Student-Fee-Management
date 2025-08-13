@@ -2,6 +2,10 @@ import nodemailer from 'nodemailer';
 import db from '../../lib/db';
 
 export default async function handler(req, res) {
+   const url = new URL(req.url);
+  if (url.searchParams.get("key") !== process.env.CRON_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
   if (req.method === "GET") {
     try {
       console.log("Fetching dueDate...");
