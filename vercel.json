@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/send-reminders?key=Pakistan-zindabad-live-long",
-      "schedule": "0 4 * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
