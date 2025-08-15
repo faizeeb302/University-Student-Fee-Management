@@ -9,84 +9,57 @@ const FeeDetails = () => {
   const [loading, setLoading] = useState(false);
   const [studentName, setStudentName] = useState(null);
 
-//   const fetchFeeDetails = async () => {
-//     if (!rollNumber.trim()) {
-//       Swal.fire("Please enter a valid roll number.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setFeeDetails([]);
-//     try {
-//       const response = await fetch(`/api/get-fee-details?roll=${rollNumber}`);
-//       const data = await response.json();
-
-//       if (!data || data.length === 0) {
-//         Swal.fire("No fee details found for the given roll number.");
-//       } else {
-//         setFeeDetails(data.semesters);
-//         setStudentName(data.name);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching fee details:", error);
-//       Swal.fire("Error fetching fee details. Please try again later.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-const fetchFeeDetails = async () => {
-  if (!rollNumber.trim()) {
-    Swal.fire("Missing Roll Number", "Please enter a valid roll number.", "warning");
-    return;
-  }
-
-  setLoading(true);
-  setFeeDetails([]);
-  setStudentName(null);
-
-  try {
-    const response = await fetch(`/api/get-fee?rollNumber=${rollNumber}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      Swal.fire("Error", data.message || "Failed to fetch fee data.");
+  const fetchFeeDetails = async () => {
+    if (!rollNumber.trim()) {
+      Swal.fire("Missing Roll Number", "Please enter a valid roll number.", "warning");
       return;
     }
 
-    // All semesters (1 to 8)
-    const semesters = Array.from({ length: 8 }, (_, i) => i + 1);
+    setLoading(true);
+    setFeeDetails([]);
+    setStudentName(null);
 
-    // Map semesters to fee records (if found)
-    const mappedFees = semesters.map((sem) => {
-      const feeRecord = data.fees.find((f) => Number(f.semester) === sem);
+    try {
+      const res = await fetch(`/api/get-fee?rollNumber=${encodeURIComponent(rollNumber.trim())}`);
+      const data = await res.json().catch(() => ({}));
 
-      if (feeRecord) {
-        return {
-          semester: sem,
-          paid: true,
-          amount: feeRecord.amount,
-          date: feeRecord.submissionDate,
-          challanId: feeRecord.challanId,
-        };
-      } else {
-        return {
-          semester: sem,
-          paid: false,
-        };
+      // If no records or 404
+      if (res.status === 404 || !data?.fees || data.fees.length === 0) {
+        Swal.fire("No Records", "No fee records found with this roll number.", "info");
+        return;
       }
-    });
 
-    setFeeDetails(mappedFees);
-    setStudentName(rollNumber); // or fetch from another API if needed
-  } catch (error) {
-    console.error("Error fetching fee details:", error);
-    Swal.fire("Error", "Failed to fetch fee data. Please try again later.", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!res.ok) {
+        Swal.fire("Error", data?.message || "Failed to fetch fee data.", "error");
+        return;
+      }
 
+      // Map to required fields
+      const rows = data.fees.map((f) => ({
+        semesterType: f.semesterType,
+        semesterYear: f.semesterYear,
+        amount: f.amount,
+        submissionDate: f.submissionDate || "-",
+        challanId: f.challanId || "-",
+      }));
+
+      // Sort by year and type
+      rows.sort((a, b) => {
+        const yearDiff = Number(b.semesterYear) - Number(a.semesterYear);
+        if (yearDiff !== 0) return yearDiff;
+        const order = (t) => (t?.toLowerCase() === "spring" ? 0 : 1);
+        return order(a.semesterType) - order(b.semesterType);
+      });
+
+      setFeeDetails(rows);
+      setStudentName(data?.studentName || rollNumber.trim());
+    } catch (err) {
+      console.error("Error fetching fee details:", err);
+      Swal.fire("Error", "Failed to fetch fee data. Please try again later.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -107,30 +80,32 @@ const fetchFeeDetails = async () => {
         <Spinner />
       ) : feeDetails.length > 0 ? (
         <div>
-          <h3 style={styles.studentName}>Roll Number: <span style={{ color: '#007bff' }}>{studentName}</span></h3>
+          <h3 style={styles.studentName}>
+            Roll Number: <span style={{ color: "#007bff" }}>{studentName}</span>
+          </h3>
+
           <div style={styles.tableContainer}>
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <th style={styles.th}>Semester</th>
-                  <th style={styles.th}>Status</th>
-                  <th style={styles.th}>Amount Paid</th>
-                  <th style={styles.th}>Remaining</th>
-                  <th style={styles.th}>Date Paid</th>
+                  <th style={styles.th}>Semester Type</th>
+                  <th style={styles.th}>Semester Year</th>
+                  <th style={styles.th}>Amount</th>
+                  <th style={styles.th}>Submission Date</th>
                   <th style={styles.th}>Challan ID</th>
                 </tr>
               </thead>
               <tbody>
-                {feeDetails.map((fee, index) => (
-                  <tr key={index} style={index % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}>
-                    <td style={styles.td}>{fee.semester}</td>
-                    <td style={{ ...styles.td, color: fee.paid ? "green" : "red", fontWeight: "bold" }}>
-                      {fee.paid ? "Paid" : "Not Paid"}
-                    </td>
-                    <td style={styles.td}>{fee.paid ? `Rs. ${fee.amount}` : "-"}</td>
-                    <td style={styles.td}>{fee.paid ? `Rs. ${fee.remaining ?? 0}` : "Rs. 15000"}</td>
-                    <td style={styles.td}>{fee.paid ? fee.date : "-"}</td>
-                    <td style={styles.td}>{fee.paid ? fee.challanId : "-"}</td>
+                {feeDetails.map((fee, idx) => (
+                  <tr
+                    key={`${fee.semesterType}-${fee.semesterYear}-${idx}`}
+                    style={idx % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd}
+                  >
+                    <td style={styles.td}>{fee.semesterType}</td>
+                    <td style={styles.td}>{fee.semesterYear}</td>
+                    <td style={styles.td}>Rs. {fee.amount}</td>
+                    <td style={styles.td}>{fee.submissionDate}</td>
+                    <td style={styles.td}>{fee.challanId}</td>
                   </tr>
                 ))}
               </tbody>
@@ -158,7 +133,7 @@ const styles = {
   },
   studentName: {
     fontSize: "20px",
-    fontWeight: "600",
+    fontWeight: 600,
     marginBottom: "15px",
   },
   inputContainer: {

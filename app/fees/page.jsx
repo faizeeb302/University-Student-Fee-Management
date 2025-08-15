@@ -3,11 +3,26 @@ import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { IoWarningOutline } from "react-icons/io5";
 import Spinner from "../../components/Spinner/spinner";
+import ClientOnlySelect from "../../components/CustomSelect/clientOnlySelect";
 
 const FeeSubmission = () => {
+  const startYear = 2000;
+  const endYear = 2050;
+
+  const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => {
+    const y = (startYear + i).toString();
+    return { label: y, value: y };
+  });
+
+  const semesterTypeOptions = [
+    { label: "Fall", value: "Fall" },
+    { label: "Spring", value: "Spring" },
+  ];
+
   const [feeData, setFeeData] = useState({
     rollNumber: "",
-    semester: "",
+    semesterType: null,
+    semesterYear: null,
     challanId: "",
     amount: "",
     submissionDate: "",
@@ -17,21 +32,16 @@ const FeeSubmission = () => {
 
   const [loading, setLoading] = useState(false);
   const [rollNumberError, setRollNumberError] = useState("");
-  const printRef = useRef();
 
   const handleChange = (field, value) => {
     if (field === "rollNumber") {
       const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-      if (value && !rollRegex.test(value)) {
-        setRollNumberError("Roll number must be in format: 21-BSCS-38");
-      } else {
-        setRollNumberError("");
-      }
+      setRollNumberError(value && !rollRegex.test(value) ? "Roll number must be in format: 21-BSCS-38" : "");
     }
 
-      if (field === "challanId") {
-    value = value.replace(/\D/g, "");
-  }
+    if (field === "challanId") {
+      value = value.replace(/\D/g, "");
+    }
 
     setFeeData((prev) => ({
       ...prev,
@@ -42,7 +52,7 @@ const FeeSubmission = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > (1001 * 1024)) {
+      if (file.size > 1024 * 1000) {
         Swal.fire("Image Too Large", "Challan image must be less than 1MB.", "error");
         return;
       }
@@ -55,11 +65,28 @@ const FeeSubmission = () => {
     }
   };
 
- const handleSubmit = async () => {
-  const { rollNumber, semester, challanId, amount, submissionDate, challanImageUrl } = feeData;
+const handleSubmit = async () => {
+  const {
+    rollNumber,
+    semesterType,
+    semesterYear,
+    challanId,
+    amount,
+    submissionDate,
+    challanImageUrl,
+  } = feeData;
 
   const rollRegex = /^\d{2}-[A-Z]{2,5}-\d+$/;
-  if (!rollNumber || !semester || !challanId || !amount || !submissionDate || !feeData.challanImage) {
+
+  if (
+    !rollNumber ||
+    !semesterType?.value ||
+    !semesterYear?.value ||
+    !challanId ||
+    !amount ||
+    !submissionDate ||
+    !feeData.challanImage
+  ) {
     Swal.fire("Missing Fields", "Please fill in all fields and upload the challan image.", "warning");
     return;
   }
@@ -69,25 +96,34 @@ const FeeSubmission = () => {
     return;
   }
 
-  if (isNaN(semester) || Number(semester) < 1 || Number(semester) > 8) {
-    Swal.fire("Invalid Semester", "Semester must be between 1 and 8.", "error");
-    return;
-  }
-
-  if (isNaN(amount) || Number(amount) <= 0) {
-    Swal.fire("Invalid Amount", "Fee amount must be a positive number.", "error");
-    return;
-  }
-
   setLoading(true);
 
   try {
+    // ✅ 1. Check if student exists
+    const checkStudent = await fetch("/api/student", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rollNumber }),
+    });
+
+    if (checkStudent.status === 404) {
+      setLoading(false);
+      Swal.fire("Student Not Found", "No student found with this roll number.", "error");
+      return;
+    }
+
+    if (!checkStudent.ok) {
+      throw new Error("Error verifying student");
+    }
+
+    // ✅ 2. Confirm submission summary
     const result = await Swal.fire({
       title: "Fee Submission Summary",
       html: `
         <div style="text-align:left; font-size: 0.95rem">
           <p><strong>Roll Number:</strong> ${rollNumber}</p>
-          <p><strong>Semester:</strong> ${semester}</p>
+          <p><strong>Semester Type:</strong> ${semesterType?.value}</p>
+          <p><strong>Semester Year:</strong> ${semesterYear?.value}</p>
           <p><strong>Challan ID:</strong> ${challanId}</p>
           <p><strong>Amount:</strong> Rs. ${amount}</p>
           <p><strong>Date:</strong> ${submissionDate}</p>
@@ -109,19 +145,18 @@ const FeeSubmission = () => {
       return;
     }
 
-    // ✅ Submit to backend API
+    // ✅ 3. Submit fee entry
     const response = await fetch("/api/fee-entry", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        rollNumber,
-        semester: Number(semester),
-        challanId,
+        rollNumber:rollNumber,
+        semesterType: semesterType?.value,
+        semesterYear: Number(semesterYear?.value),
+        challanId:challanId,
         amount: Number(amount),
-        submissionDate,
-        challanImageUrl,
+        submissionDate:submissionDate,
+        challanImageUrl:challanImageUrl,
       }),
     });
 
@@ -133,10 +168,10 @@ const FeeSubmission = () => {
 
     Swal.fire("Success", "Fee submitted successfully!", "success");
 
-    // Reset form
     setFeeData({
       rollNumber: "",
-      semester: "",
+      semesterType: null,
+      semesterYear: null,
       challanId: "",
       amount: "",
       submissionDate: "",
@@ -158,6 +193,7 @@ const FeeSubmission = () => {
       <h1 style={styles.heading}>Fee Submission</h1>
 
       <div style={styles.form}>
+        {/* Roll Number */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Roll Number</label>
           <input
@@ -174,18 +210,29 @@ const FeeSubmission = () => {
           )}
         </div>
 
+        {/* Semester Type */}
         <div style={styles.inputGroup}>
-          <label style={styles.label}>Semester (1–8)</label>
-          <input
-            type="number"
-            value={feeData.semester}
-            min="1"
-            max="8"
-            onChange={(e) => handleChange("semester", e.target.value)}
-            style={styles.input}
+          <label style={styles.label}>Semester Type</label>
+          <ClientOnlySelect
+            options={semesterTypeOptions}
+            value={feeData.semesterType}
+            onChange={(selected) => handleChange("semesterType", selected)}
+            placeholder="Select Semester Type"
           />
         </div>
 
+        {/* Semester Year */}
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Semester Year</label>
+          <ClientOnlySelect
+            options={yearOptions}
+            value={feeData.semesterYear}
+            onChange={(selected) => handleChange("semesterYear", selected)}
+            placeholder="Select Year"
+          />
+        </div>
+
+        {/* Challan ID */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Challan ID</label>
           <input
@@ -196,6 +243,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Fee Amount */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Fee Amount</label>
           <input
@@ -206,6 +254,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Submission Date */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Submission Date</label>
           <input
@@ -216,6 +265,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Challan Image Upload */}
         <div style={styles.inputGroup}>
           <label style={styles.label}>Upload Challan Image (less than 1MB)</label>
           <input
@@ -226,6 +276,7 @@ const FeeSubmission = () => {
           />
         </div>
 
+        {/* Preview */}
         {feeData.challanImageUrl && (
           <img
             src={feeData.challanImageUrl}
