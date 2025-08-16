@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/send-reminders?key=Pakistan-zindabad-live-long",
-      "schedule": "0 * * * *"
+      "path": "/api/send-reminders",
+      "schedule": "0 11 * * *"
     }
   ]
 }
