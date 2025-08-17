@@ -37,6 +37,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Missing required student fields' });
     }
 
+
     const query = `
       INSERT INTO student_info (
         rollNumber,
@@ -84,7 +85,6 @@ export default async function handler(req, res) {
       district,
       street
     ];
-    console.log("image",image)
 
     const [result] = await db.execute(query, values);
 

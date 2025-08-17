@@ -11,7 +11,8 @@ const YearlyFee = () => {
     return { label: y, value: y };
   });
 
-  const semesterLabels = ["Odd Semester", "Even Semester"];
+  // ✅ Spring comes first, then Fall
+  const semesterLabels = ["Spring", "Fall"];
   const [year, setYear] = useState({ label: "2025", value: "2025" });
   const [fees, setFees] = useState(
     semesterLabels.map(() => ({ dueDate: "", isEditing: false }))
@@ -30,7 +31,7 @@ const YearlyFee = () => {
   };
 
   const handleConfirm = async (index) => {
-    const semesterType = index === 0 ? "Odd" : "Even";
+    const semesterType = semesterLabels[index]; // "Spring" or "Fall"
     const dueDate = fees[index].dueDate;
     const selectedYear = year.value;
 
@@ -104,7 +105,7 @@ const YearlyFee = () => {
       {semesterLabels.map((label, index) => (
         <div key={index} style={styles.card}>
           <div style={styles.row}>
-            <div style={styles.labelText}>{label}</div>
+            <div style={styles.labelText}>{label} Semester</div>
           </div>
 
           <div style={styles.row}>
